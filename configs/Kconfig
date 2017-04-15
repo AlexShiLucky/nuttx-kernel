@@ -508,7 +508,7 @@ config ARCH_BOARD_OLIMEX_STRP711
 	select ARCH_HAVE_BUTTONS
 	---help---
 		This port uses the Olimex STR-P711 board and a GNU arm-nuttx-elf toolchain* under
-		Linux or Cygwin. See the http://www.olimex.com/dev/str-p711.html" for
+		Linux or Cygwin. See the http://www.olimex.com/dev/str-p711.html for
 		further information.  STATUS: Configurations for the basic OS test and NSH
 		are complete and verified.
 
@@ -1284,7 +1284,7 @@ config ARCH_BOARD_Z80SIM
 	---help---
 		z80 Microcontroller.  This port uses a Z80 instruction set simulator
 		called z80sim.  This port also uses the SDCC toolchain
-		(http://sdcc.sourceforge.net/") (verified with version 2.6.0).
+		(http://sdcc.sourceforge.net/) (verified with version 2.6.0).
 
 config ARCH_BOARD_Z8ENCORE000ZCO
 	bool "ZiLOG Z8ENCORE000ZCO Development Kit"
