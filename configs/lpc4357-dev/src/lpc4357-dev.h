@@ -68,11 +68,19 @@
  * - No buffering, glitch filtering, slew=slow
  */
 
-#define PINCONFIG_LED  PINCONF_GPIO7p7
+#define PINCONFIG_LED0  PINCONF_GPIO6p24
+#define PINCONFIG_LED1  PINCONF_GPIO6p25
+#define PINCONFIG_LED2  PINCONF_GPIO6p26
+#define PINCONFIG_LED3  PINCONF_GPIO6p27
+#define PINCONFIG_LED4  PINCONF_GPIO6p28
 
 /* Definitions to configure LED GPIO as outputs */
 
-#define GPIO_LED       (GPIO_MODE_OUTPUT | GPIO_VALUE_ONE | GPIO_PORT7 | GPIO_PIN7)
+#define GPIO_LED0       (GPIO_MODE_OUTPUT | GPIO_VALUE_ONE | GPIO_PORT6 | GPIO_PIN24)
+#define GPIO_LED1       (GPIO_MODE_OUTPUT | GPIO_VALUE_ONE | GPIO_PORT6 | GPIO_PIN25)
+#define GPIO_LED2       (GPIO_MODE_OUTPUT | GPIO_VALUE_ONE | GPIO_PORT6 | GPIO_PIN26)
+#define GPIO_LED3       (GPIO_MODE_OUTPUT | GPIO_VALUE_ONE | GPIO_PORT6 | GPIO_PIN27)
+#define GPIO_LED4       (GPIO_MODE_OUTPUT | GPIO_VALUE_ONE | GPIO_PORT6 | GPIO_PIN28)
 
 /* Button definitions *******************************************************/
 /* to be provided */

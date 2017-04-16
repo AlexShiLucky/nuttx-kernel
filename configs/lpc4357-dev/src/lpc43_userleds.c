@@ -57,13 +57,17 @@
  * Pre-processor Definitions
  ****************************************************************************/
 /* LED definitions **********************************************************/
-/* The LPC4357-DEV has one user-controllable LED labelled D6 controlled by
+/* The LPC4357-DEV has one user-controllable LED labelled D2 ~ D6 controlled by
  * the signal LED_3V3:
  *
  *  ---- ------- -------------
  *  LED  SIGNAL  MCU
  *  ---- ------- -------------
- *   D6  LED_3V3 PE_7 GPIO7[7]
+ *   D2  LED_3V3 PD_10 GPIO6[24]
+ *   D3  LED_3V3 PD_11 GPIO6[25]
+ *   D4  LED_3V3 PD_12 GPIO6[26]
+ *   D5  LED_3V3 PD_13 GPIO6[27]
+ *   D6  LED_3V3 PD_14 GPIO6[28]
  *  ---- ------- -------------
  *
  * LED is grounded and a high output illuminates the LED.
@@ -88,8 +92,16 @@
 #ifdef LED_VERBOSE
 static void led_dumppins(FAR const char *msg)
 {
-  lpc43_pin_dump(PINCONFIG_LED, msg);
-  lpc43_gpio_dump(GPIO_LED, msg);
+  lpc43_pin_dump(PINCONFIG_LED0, msg);
+  lpc43_gpio_dump(GPIO_LED0, msg);
+  lpc43_pin_dump(PINCONFIG_LED1, msg);
+  lpc43_gpio_dump(GPIO_LED1, msg);
+  lpc43_pin_dump(PINCONFIG_LED2, msg);
+  lpc43_gpio_dump(GPIO_LED2, msg);
+  lpc43_pin_dump(PINCONFIG_LED3, msg);
+  lpc43_gpio_dump(GPIO_LED3, msg);
+  lpc43_pin_dump(PINCONFIG_LED4, msg);
+  lpc43_gpio_dump(GPIO_LED4, msg);
 }
 #else
 #  define led_dumppins(m)
@@ -109,10 +121,18 @@ void board_userled_initialize(void)
 
   led_dumppins("board_userled_initialize() Entry)");
 
-  /* Configure LED pin as a GPIO, then configure GPIO as an outputs */
+  /* Configure LED0~4 pin as a GPIO, then configure GPIO as an outputs */
 
-  lpc43_pin_config(PINCONFIG_LED);
-  lpc43_gpio_config(GPIO_LED);
+  lpc43_pin_config(PINCONFIG_LED0);
+  lpc43_gpio_config(GPIO_LED0);
+  lpc43_pin_config(PINCONFIG_LED1);
+  lpc43_gpio_config(GPIO_LED1);
+  lpc43_pin_config(PINCONFIG_LED2);
+  lpc43_gpio_config(GPIO_LED2);
+  lpc43_pin_config(PINCONFIG_LED3);
+  lpc43_gpio_config(GPIO_LED3);
+  lpc43_pin_config(PINCONFIG_LED4);
+  lpc43_gpio_config(GPIO_LED4);
 
   led_dumppins("board_userled_initialize() Exit");
 }
@@ -123,10 +143,13 @@ void board_userled_initialize(void)
 
 void board_userled(int led, bool ledon)
 {
-  if (led == BOARD_LED)
-    {
-      lpc43_gpio_write(GPIO_LED, !ledon);
-    }
+  switch (led) {
+  case BOARD_LED0: lpc43_gpio_write(GPIO_LED0, ledon); break;
+  case BOARD_LED1: lpc43_gpio_write(GPIO_LED1, ledon); break;
+  case BOARD_LED2: lpc43_gpio_write(GPIO_LED2, ledon); break;
+  case BOARD_LED3: lpc43_gpio_write(GPIO_LED3, ledon); break;
+  case BOARD_LED4: lpc43_gpio_write(GPIO_LED4, ledon); break;
+  }
 }
 
 /****************************************************************************
@@ -135,7 +158,11 @@ void board_userled(int led, bool ledon)
 
 void board_userled_all(uint8_t ledset)
 {
-  lpc43_gpio_write(GPIO_LED, (ledset & BOARD_LED_BIT) == 0);
+  lpc43_gpio_write(GPIO_LED0, (ledset & BOARD_LED0_BIT) != 0);
+  lpc43_gpio_write(GPIO_LED1, (ledset & BOARD_LED1_BIT) != 0);
+  lpc43_gpio_write(GPIO_LED2, (ledset & BOARD_LED2_BIT) != 0);
+  lpc43_gpio_write(GPIO_LED3, (ledset & BOARD_LED3_BIT) != 0);
+  lpc43_gpio_write(GPIO_LED4, (ledset & BOARD_LED4_BIT) != 0);
 }
 
 #endif /* !CONFIG_ARCH_LEDS */

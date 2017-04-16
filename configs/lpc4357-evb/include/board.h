@@ -224,7 +224,7 @@
 
 /* LED bits for use with board_userled_all() */
 
-#define BOARD_LED _BIT    (1 << BOARD_LED)
+#define BOARD_LED_BIT    (1 << BOARD_LED)
 
 /* If CONFIG_ARCH_LEDS is defined, the LED will be controlled as follows
  * for NuttX debug functionality (where NC means "No Change").

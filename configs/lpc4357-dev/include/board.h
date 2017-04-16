@@ -56,7 +56,7 @@
  * here because the including C file may not have that file in its include
  * path.
  *
- * The Xplorer board has four crystals on board:
+ * The 盈钰 board has four crystals on board:
  *
  *     Y1 - RTC 32.768 MHz oscillator input,
  *     Y2 - 24.576 MHz input to the UDA 1380 audio codec,
@@ -205,13 +205,17 @@
 #define BOARD_USART3_BASEFREQ       BOARD_XTAL_FREQUENCY
 
 /* LED definitions *********************************************************/
-/* The LPC4357-DEV has one user-controllable LED labelled D6 controlled
+/* The LPC4357-DEV has one user-controllable LED labelled D2~6 controlled
  * by the signal LED_3V3:
  *
  *  ---- ------- -------------
  *  LED  SIGNAL  MCU
  *  ---- ------- -------------
- *   D6  LED_3V3 PE_7 GPIO7[7]
+ *   D2  LED_3V3 PD_10 GPIO6[24]
+ *   D3  LED_3V3 PD_11 GPIO6[25]
+ *   D4  LED_3V3 PD_12 GPIO6[26]
+ *   D5  LED_3V3 PD_13 GPIO6[27]
+ *   D6  LED_3V3 PD_14 GPIO6[28]
  *  ---- ------- -------------
  *
  * A low output illuminates the LED.
@@ -219,25 +223,34 @@
  * LED index values for use with board_userled()
  */
 
-#define BOARD_LED         0
-#define BOARD_NLEDS       1
+#define BOARD_LED0        0
+#define BOARD_LED1        1
+#define BOARD_LED2        2
+#define BOARD_LED3        3
+#define BOARD_LED4        4
+#define BOARD_NLEDS       5
+
 
 /* LED bits for use with board_userled_all() */
 
-#define BOARD_LED _BIT    (1 << BOARD_LED)
+#define BOARD_LED0_BIT    (1 << BOARD_LED0)
+#define BOARD_LED1_BIT    (1 << BOARD_LED1)
+#define BOARD_LED2_BIT    (1 << BOARD_LED2)
+#define BOARD_LED3_BIT    (1 << BOARD_LED3)
+#define BOARD_LED4_BIT    (1 << BOARD_LED4)
 
 /* If CONFIG_ARCH_LEDS is defined, the LED will be controlled as follows
  * for NuttX debug functionality (where NC means "No Change").
  */
                                       /* LED      */
-#define LED_STARTED                0  /* OFF      */
-#define LED_HEAPALLOCATE           0  /* OFF      */
-#define LED_IRQSENABLED            0  /* OFF      */
-#define LED_STACKCREATED           1  /* ON       */
-#define LED_INIRQ                  2  /* NC       */
-#define LED_SIGNAL                 2  /* NC       */
-#define LED_ASSERTION              2  /* NC       */
-#define LED_PANIC                  3  /* Flashing */
+#define LED_STARTED                0  /* LED0 */
+#define LED_HEAPALLOCATE           1  /* LED1 */
+#define LED_IRQSENABLED            2  /* LED0 + LED1 */
+#define LED_STACKCREATED           3  /* LED2 */
+#define LED_INIRQ                  4  /* LED0 + LED2 */
+#define LED_SIGNAL                 5  /* LED1 + LED3 */
+#define LED_ASSERTION              6  /* LED0 + LED1 + LED2 */
+#define LED_PANIC                  7  /* LED3 */
 
 /* If CONFIG_ARCH_LEDS is not defined, then the LEDs are completely under
  * control of the application.  The following interfaces are then available
@@ -271,8 +284,8 @@
  * file arch/arc/src/lpc43xx/lpc4310203050_pinconf.h for more info).
  */
 
-#define PINCONF_U0_TXD  PINCONF_U0_TXD_4
-#define PINCONF_U0_RXD  PINCONF_U0_RXD_4
+#define PINCONF_U0_TXD  PINCONF_U0_TXD_1
+#define PINCONF_U0_RXD  PINCONF_U0_RXD_1
 #define PINCONF_U0_DIR  PINCONF_U0_DIR_3
 
 #define PINCONF_U1_TXD  PINCONF_U1_TXD_1
@@ -282,8 +295,8 @@
 #define PINCONF_U2_RXD  PINCONF_U2_RXD_3
 #define PINCONF_U2_DIR  PINCONF_U2_DIR_2
 
-#define PINCONF_U3_TXD  PINCONF_U3_TXD_4
-#define PINCONF_U3_RXD  PINCONF_U3_RXD_4
+#define PINCONF_U3_TXD  PINCONF_U3_TXD_2
+#define PINCONF_U3_RXD  PINCONF_U3_RXD_2
 #define PINCONF_U3_DIR  PINCONF_U3_DIR_3
 
 /****************************************************************************
