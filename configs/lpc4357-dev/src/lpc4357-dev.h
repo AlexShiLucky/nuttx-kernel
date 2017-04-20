@@ -50,13 +50,17 @@
  * Pre-processor Definitions
  ****************************************************************************/
 /* LED definitions **********************************************************/
-/* The LPC4357-DEV has one user-controllable LED labelled D6 controlled by
+/* The LPC4357-DEV has one user-controllable LED labelled D2 ~ D6 controlled by
  * the signal LED_3V3:
  *
  *  ---- ------- -------------
  *  LED  SIGNAL  MCU
  *  ---- ------- -------------
- *   D6  LED_3V3 PE_7 GPIO7[7]
+ *   D2  LED_3V3 PD_10 GPIO6[24]
+ *   D3  LED_3V3 PD_11 GPIO6[25]
+ *   D4  LED_3V3 PD_12 GPIO6[26]
+ *   D5  LED_3V3 PD_13 GPIO6[27]
+ *   D6  LED_3V3 PD_14 GPIO6[28]
  *  ---- ------- -------------
  *
  * A low output illuminates the LED.

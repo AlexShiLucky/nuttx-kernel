@@ -56,8 +56,8 @@
 
 MEMORY
 {
-	progmem (rx)  : ORIGIN = 0x14000000, LENGTH = 1024K
-	datamem (rwx) : ORIGIN = 0x10000000, LENGTH = 128K
+	progmem (rx)  : ORIGIN = 0x14000000, LENGTH = 4096K
+	datamem (rwx) : ORIGIN = 0x10000000, LENGTH = 32K
 }
 
 OUTPUT_ARCH(arm)

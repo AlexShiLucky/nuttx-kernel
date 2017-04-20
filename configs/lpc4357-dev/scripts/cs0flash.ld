@@ -1,5 +1,5 @@
 /****************************************************************************
- * configs/lpc4357-dev/scripts/flashconfig.ld
+ * configs/lpc4357-dev/scripts/cs0flash.ld
  *
  *   Copyright (C) 2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -62,7 +62,9 @@
  * Internal flash:
  *    a. 512kB of flash (bank A) at 0x1a000000
  *    b. 512kB of flash (bank B) at 0x1b000000
- * External flash:
+ * External nor flash:
+ *    a. 16MB of static external memory CS0 at 0x1c000000
+ * External nand flash:
  *    a. 4MB of SPIFl flash at 0x14000000
  *
  * Here we assume that:
@@ -77,7 +79,7 @@
 
 MEMORY
 {
-    progmem (rx)  : ORIGIN = 0x1A000000, LENGTH = 512K
+    progmem (rx)  : ORIGIN = 0x1C000000, LENGTH = 16M
     datamem (rwx) : ORIGIN = 0x10000000, LENGTH = 32K
 }
 

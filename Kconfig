@@ -417,7 +417,7 @@ config DEBUG_ALERT
 	bool
 	default n
 
-config DEBUG_FEATURES
+menuconfig DEBUG_FEATURES
 	bool "Enable Debug Features"
 	default n
 	select DEBUG_ALERT

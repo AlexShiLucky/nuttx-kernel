@@ -36,19 +36,29 @@ LPC4357-DEV board
   Memory Map
   ----------
 
-  Block                 Start      Length
-  Name                  Address
-  --------------------- ---------- ------
-  RAM                   0x10000000    32K
-  RAM2                  0x10080000    40K
-  SPIFI flash           0x14000000  4096K
-  FlashA                0x1a000000   512k
-  FlashB                0x1b000000   512k
+  Block                 Chip                    Start      Length
+  Name                  Name                    Address
+  --------------------- ---------------------   ---------- -------
+  RAM                   Local                   0x10000000    32KB
+  RAM2                  Local                   0x10080000    40KB
+  SPIFI flash           S25FL032P0XMFI01        0x14000000     4MB
+  FlashA                Local                   0x1a000000   512KB
+  FlashB                Local                   0x1b000000   512KB
+  AHB SRAM              Local                   0x20000000    64KB
+  ESRAM0                S29GL064N90TFI020       0x1C000000    16MB
+  ESRAM1                None                    0x1D000000    16MB
+  ESRAM2                None                    0x1E000000    16MB
+  ESRAM3                None                    0x1F000000    16MB
+  SDRAM0                MT48LC4M32B2P-128MBit   0x28000000    16MB
+  SDRAM1                None                    0x30000000   256MB
+  SDRAM2                None                    0x60000000   256MB
+  SDRAM3                None                    0x70000000   256MB
+  EEPROM                24LC256
 
   Console
   -------
 
-  The LPC4357-DEV default console is the USART0.
+  The LPC4357-DEV default console is the USART1.
 
 Status
 ======
@@ -693,7 +703,7 @@ LPC4357-DEV Configuration Options
 
     CONFIG_ARCH_architecture - For use in C code:
 
-       CONFIG_ARCH_CORTEXM3=y
+       CONFIG_ARCH_CORTEXM4=y
 
     CONFIG_ARCH_CHIP - Identifies the arch/*/chip subdirectory
 
@@ -711,9 +721,9 @@ LPC4357-DEV Configuration Options
 
     CONFIG_ARCH_BOARD_name - For use in C code
 
-       CONFIG_ARCH_BOARD_LPC4357DEV=y
+       CONFIG_ARCH_BOARD_LPC4357_DEV=y
 
-    CONFIG_ARCH_LOOPSPERMSEC - Must be calibrated for correct operation
+    CONFIG_BOARD_LOOPSPERMSEC - Must be calibrated for correct operation
        of delay loops
 
     CONFIG_ENDIAN_BIG - define if big endian (default is little
@@ -721,7 +731,7 @@ LPC4357-DEV Configuration Options
 
     CONFIG_RAM_SIZE - Describes the installed DRAM (CPU SRAM in this case):
 
-       CONFIG_RAM_SIZE=(32*1024) (32Kb)
+       CONFIG_RAM_SIZE=(32*1024) (32KB)
 
        There is an additional 32Kb of SRAM in AHB SRAM banks 0 and 1.
 
@@ -729,7 +739,7 @@ LPC4357-DEV Configuration Options
 
        CONFIG_RAM_START=0x10000000
 
-    CONFIG_ARCH_FPU - The LPC43xxx supports a floating point unit (FPU)
+    CONFIG_ARCH_FPU - The LPC43xx supports a floating point unit (FPU)
 
        CONFIG_ARCH_FPU=y
 
@@ -757,8 +767,6 @@ LPC4357-DEV Configuration Options
       used during interrupt handling.
 
     CONFIG_ARCH_STACKDUMP - Do stack dumps after assertions
-
-    CONFIG_ARCH_LEDS -  Use LEDs to show state. Unique to board architecture.
 
     CONFIG_ARCH_CALIBRATION - Enables some build in instrumentation that
        cause a 100 second delay during boot-up.  This 100 second delay
@@ -810,7 +818,7 @@ LPC4357-DEV Configuration Options
   LPC43xx specific U[S]ART device driver settings
 
     CONFIG_U[S]ARTn_SERIAL_CONSOLE - selects the UARTn for the
-       console and ttys0 (default is the USART0).
+       console and ttys0 (default is the USART1).
     CONFIG_U[S]ARTn_RXBUFSIZE - Characters are buffered as received.
        This specific the size of the receive buffer
     CONFIG_U[S]ARTn_TXBUFSIZE - Characters are buffered before

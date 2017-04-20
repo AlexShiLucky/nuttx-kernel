@@ -57,7 +57,7 @@
 /* Here we assume that:
  *
  * 1. We will be running out of SRAM at 0x1000:0000, and
- * 2. All .data and .bss will all fit into the 72KB SRAM block.
+ * 2. All .data and .bss will all fit into the 40KB SRAM block.
  *
  * NOTE: That initialized data is kept in the program memory SRAM and copied
  * to .data SRAM.  This is wasteful and unnecessary but provides a good test
@@ -66,8 +66,8 @@
 
 MEMORY
 {
-	progmem (rx)  : ORIGIN = 0x10000000, LENGTH = 128K
-	datamem (rwx) : ORIGIN = 0x10080000, LENGTH = 72K
+	progmem (rx)  : ORIGIN = 0x10000000, LENGTH = 32K
+	datamem (rwx) : ORIGIN = 0x10080000, LENGTH = 40K
 }
 
 OUTPUT_ARCH(arm)

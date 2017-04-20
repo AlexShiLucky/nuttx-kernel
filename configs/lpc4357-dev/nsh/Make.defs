@@ -54,6 +54,15 @@ endif
 ifeq ($(CONFIG_LPC43_BOOT_CS0FLASH),y)
   LDSCRIPT = cs0flash.ld
 endif
+ifeq ($(CONFIG_LPC43_BOOT_CS1FLASH),y)
+  LDSCRIPT = cs1flash.ld
+endif
+ifeq ($(CONFIG_LPC43_BOOT_CS2FLASH),y)
+  LDSCRIPT = cs2flash.ld
+endif
+ifeq ($(CONFIG_LPC43_BOOT_CS3FLASH),y)
+  LDSCRIPT = cs3flash.ld
+endif
 
 # Setup for Windows vs Linux/Cygwin/OSX environments
 
