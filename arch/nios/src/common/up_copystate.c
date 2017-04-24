@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/hc/src/common/up_copystate.c
+ * arch/nios/src/common/up_copystate.c
  *
  *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>

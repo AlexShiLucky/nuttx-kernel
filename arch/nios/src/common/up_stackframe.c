@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/hc/src/common/up_stackframe.c
+ * arch/nios/src/common/up_stackframe.c
  *
  *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>

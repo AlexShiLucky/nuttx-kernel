@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/hc/src/common/up_exit.c
+ * arch/nios/src/common/up_exit.c
  *
  *   Copyright (C) 2011, 2013-2014, 2017 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -51,6 +51,7 @@
 #include "task/task.h"
 #include "sched/sched.h"
 #include "group/group.h"
+#include "irq/irq.h"
 #include "up_internal.h"
 
 /****************************************************************************
@@ -97,7 +98,7 @@ static void _up_dumponexit(FAR struct tcb_s *tcb, FAR void *arg)
       if (inode)
         {
           sinfo("      fd=%d refcount=%d\n",
-                i, inode->i_crefs);
+                i, inode->i_crefssinfo);
         }
     }
 #endif
@@ -109,13 +110,18 @@ static void _up_dumponexit(FAR struct tcb_s *tcb, FAR void *arg)
       struct file_struct *filep = &streamlist->sl_streams[i];
       if (filep->fs_fd >= 0)
         {
-#if CONFIG_STDIO_BUFFER_SIZE > 0
-          sinfo("      fd=%d nbytes=%d\n",
-                filep->fs_fd,
-                filep->fs_bufpos - filep->fs_bufstart);
-#else
-          sinfo("      fd=%d\n", filep->fs_fd);
+#ifndef CONFIG_STDIO_DISABLE_BUFFERING
+          if (filep->fs_bufstart != NULL)
+            {
+              sinfo("      fd=%d nbytes=%d\n",
+                    filep->fs_fd,
+                    filep->fs_bufpos - filep->fs_bufstart);
+            }
+          else
 #endif
+            {
+              sinfo("      fd=%d\n", filep->fs_fd);
+            }
         }
     }
 #endif

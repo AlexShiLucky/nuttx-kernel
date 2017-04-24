@@ -1,7 +1,7 @@
 /****************************************************************************
- * arch/hc/src/common/up_arch.h
+ * arch/nios/src/common/up_arch.h
  *
- *   Copyright (C) 2009, 2015 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2009, 2015, 2017 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,8 @@
  *
  ****************************************************************************/
 
-#ifndef ___ARCH_HC_SRC_COMMON_UP_ARCH_H
-#define ___ARCH_HC_SRC_COMMON_UP_ARCH_H
+#ifndef ___ARCH_NIOS_SRC_COMMON_UP_ARCH_H
+#define ___ARCH_NIOS_SRC_COMMON_UP_ARCH_H
 
 /****************************************************************************
  * Included Files
@@ -90,4 +90,4 @@ void modifyreg32(unsigned int addr, uint32_t clearbits, uint32_t setbits);
 #endif
 
 #endif /* __ASSEMBLY__ */
-#endif  /* ___ARCH_HC_SRC_COMMON_UP_ARCH_H */
+#endif  /* ___ARCH_NIOS_SRC_COMMON_UP_ARCH_H */

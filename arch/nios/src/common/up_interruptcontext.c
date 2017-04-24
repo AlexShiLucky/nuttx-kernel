@@ -1,7 +1,7 @@
 /****************************************************************************
- *  arch/hc/src/common/up_interruptcontext.c
+ *  arch/nios/src/common/up_interruptcontext.c
  *
- *   Copyright (C) 2009 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2017 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without

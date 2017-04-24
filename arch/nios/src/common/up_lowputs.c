@@ -1,5 +1,5 @@
 /****************************************************************************
- *  arch/nios/src/common/up_idle.c
+ * arch/nios/src/common/up_lowputs.c
  *
  *   Copyright (C) 2017 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -39,7 +39,6 @@
 
 #include <nuttx/config.h>
 
-#include <nuttx/arch.h>
 #include "up_internal.h"
 
 /****************************************************************************
@@ -59,33 +58,17 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_idle
+ * Name: up_lowputs
  *
  * Description:
- *   up_idle() is the logic that will be executed when their is no other
- *   ready-to-run task.  This is processor idle time and will continue until
- *   some interrupt occurs to cause a context switch from the idle task.
- *
- *   Processing in this state may be processor-specific. e.g., this is where
- *   power management operations might be performed.
+ *   This is a low-level helper function used to support debug.
  *
  ****************************************************************************/
 
-void up_idle(void)
+void up_lowputs(const char *str)
 {
-#if defined(CONFIG_SUPPRESS_INTERRUPTS) || defined(CONFIG_SUPPRESS_TIMER_INTS)
-  /* If the system is idle and there are no timer interrupts, then process
-   * "fake" timer interrupts. Hopefully, something will wake up.
-   */
-
-  sched_process_timer();
-#else
-
-  /* Sleep until an interrupt occurs to save power */
-
-#if 0
-  asm("WFI");  /* For example */
-#endif
-#endif
+  while (*str)
+    {
+      up_lowputc(*str++);
+    }
 }
-

@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/hc/src/common/up_usestack.c
+ * arch/nios/src/common/up_usestack.c
  *
  *   Copyright (C) 2009, 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>

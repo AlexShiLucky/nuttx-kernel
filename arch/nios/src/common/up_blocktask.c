@@ -1,7 +1,7 @@
 /****************************************************************************
- * arch/hc/src/common/up_blocktask.c
+ * arch/nios/src/common/up_blocktask.c
  *
- *   Copyright (C) 2010, 2013-2015 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2010, 2013-2015, 2017 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without

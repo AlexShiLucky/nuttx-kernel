@@ -1,7 +1,7 @@
 /****************************************************************************
- * arch/hc/src/common/up_initialize.c
+ * arch/nios/src/common/up_initialize.c
  *
- *   Copyright (C) 2009-2010, 2012-2013, 2015-2016 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2009-2010, 2012-2013, 2015-2017 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,8 @@
 #include <nuttx/crypto/crypto.h>
 #include <nuttx/power/pm.h>
 
+#include <arch/board/board.h>
+
 #include "up_arch.h"
 #include "up_internal.h"
 
@@ -90,6 +92,32 @@ static void up_calibratedelay(void)
 #endif
 
 /****************************************************************************
+ * Name: up_color_intstack
+ *
+ * Description:
+ *   Set the interrupt stack to a value so that later we can determine how
+ *   much stack space was used by interrupt handling logic
+ *
+ ****************************************************************************/
+
+#if defined(CONFIG_STACK_COLORATION) && CONFIG_ARCH_INTERRUPTSTACK > 3
+static inline void up_color_intstack(void)
+{
+  uint32_t *ptr = (uint32_t *)&g_intstackalloc;
+  ssize_t size;
+
+  for (size = (CONFIG_ARCH_INTERRUPTSTACK & ~3);
+       size > 0;
+       size -= sizeof(uint32_t))
+    {
+      *ptr++ = INTSTACK_COLOR;
+    }
+}
+#else
+#  define up_color_intstack()
+#endif
+
+/****************************************************************************
  * Public Functions
  ****************************************************************************/
 
@@ -114,11 +142,15 @@ void up_initialize(void)
 {
   /* Initialize global variables */
 
-  g_current_regs = NULL;
+  CURRENT_REGS = NULL;
 
   /* Calibrate the timing loop */
 
   up_calibratedelay();
+
+  /* Colorize the interrupt stack */
+
+  up_color_intstack();
 
   /* Add any extra memory fragments to the memory manager */
 
@@ -153,7 +185,8 @@ void up_initialize(void)
 
   /* Initialize the system timer interrupt */
 
-#if !defined(CONFIG_SUPPRESS_INTERRUPTS) && !defined(CONFIG_SUPPRESS_TIMER_INTS)
+#if !defined(CONFIG_SUPPRESS_INTERRUPTS) && !defined(CONFIG_SUPPRESS_TIMER_INTS) && \
+    !defined(CONFIG_SYSTEMTICK_EXTCLK)
   up_timer_initialize();
 #endif
 
@@ -252,9 +285,12 @@ void up_initialize(void)
   (void)telnet_initialize();
 #endif
 
-  /* Initialize USB */
+  /* Initialize USB -- device and/or host */
 
   up_usbinitialize();
 
+  /* Initialize the L2 cache if present and selected */
+
+  up_l2ccinitialize();
   board_autoled_on(LED_IRQSENABLED);
 }
