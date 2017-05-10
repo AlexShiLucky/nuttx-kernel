@@ -1,8 +1,8 @@
 /****************************************************************************
  * arch/nios/include/nios2/limits.h
  *
- *   Copyright (C) 2009, 2012 Gregory Nutt. All rights reserved.
- *   Author: Gregory Nutt <gnutt@nuttx.org>
+ *   Copyright (C) 2017 Alex Shi. All rights reserved.
+ *   Author: Alex Shi <shiweining123@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

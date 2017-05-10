@@ -1,8 +1,8 @@
 /****************************************************************************
  * arch/nios/include/irq.h
  *
- *   Copyright (C) 2009 Gregory Nutt. All rights reserved.
- *   Author: Gregory Nutt <gnutt@nuttx.org>
+ *   Copyright (C) 2017 Alex Shi. All rights reserved.
+ *   Author: Alex Shi <shiweining123@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -58,6 +58,8 @@
 
 #if defined(CONFIG_ARCH_NIOS2)
 # include <arch/nios2/irq.h>
+#else
+#  error "Unknown NIOS family
 #endif
 
 /****************************************************************************

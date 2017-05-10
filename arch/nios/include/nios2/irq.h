@@ -1,8 +1,8 @@
-/************************************************************************************
- * arch/hc/include/hcs12/irq.h
+/****************************************************************************
+ * arch/nios/include/nios2/irq.h
  *
- *   Copyright (C) 2009, 2011 Gregory Nutt. All rights reserved.
- *   Author: Gregory Nutt <gnutt@nuttx.org>
+ *   Copyright (C) 2017 Alex Shi. All rights reserved.
+ *   Author: Alex Shi <shiweining123@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,224 +31,478 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- ************************************************************************************/
+ ****************************************************************************/
 
-/* This file should never be included directed but, rather,
- * only indirectly through nuttx/irq.h
+/* This file should never be included directed but, rather, only indirectly
+ * through nuttx/irq.h
  */
 
-#ifndef __ARCH_HC_INCLUDE_HCS12_IRQ_H
-#define __ARCH_HC_INCLUDE_HCS12_IRQ_H
+#ifndef __ARCH_NIOS_INCLUDE_NIOS2_IRQ_H
+#define __ARCH_NIOS_INCLUDE_NIOS2_IRQ_H
 
-/************************************************************************************
+/****************************************************************************
  * Included Files
- ************************************************************************************/
+ ****************************************************************************/
 
 #include <nuttx/config.h>
-#include <nuttx/irq.h>
+#include <arch/types.h>
 
-/************************************************************************************
+/****************************************************************************
  * Pre-processor Definitions
- ************************************************************************************/
-/* CCR bit definitions */
-
-#define HCS12_CCR_C (1 << 0) /* Bit 0: Carry/Borrow status bit */
-#define HCS12_CCR_V (1 << 1) /* Bit 1: Two’s complement overflow status bit */
-#define HCS12_CCR_Z (1 << 2) /* Bit 2: Zero status bit */
-#define HCS12_CCR_N (1 << 3) /* Bit 3: Negative status bit */
-#define HCS12_CCR_I (1 << 4) /* Bit 4: Maskable interrupt control bit */
-#define HCS12_CCR_H (1 << 5) /* Bit 5: Half-carry status bit */
-#define HCS12_CCR_X (1 << 6) /* Bit 6: Non-maskable interrupt control bit */
-#define HCS12_CCR_S (1 << 7) /* Bit 7: STOP instruction control bit */
-
-/************************************************************************************
- *	Register state save strucure
- *   Low Address        <-- SP after state save
- *                [PPAGE]
- *                [soft regisers]
- *                XYH
- *                XYL
- *                ZH
- *                ZL
- *                TMPH
- *                TMPL
- *                FRAMEH
- *                FRAMEL
- *                SP    <-- SP after interrupt
- *                CCR
- *                B
- *                A
- *                XH
- *                XL
- *                YH
- *                YL
- *                PCH
- *   High Address PCL    <-- SP before interrupt
- *
- ************************************************************************************/
-
-/* Byte offsets */
-/* PPAGE register (only in banked mode) */
-
-#ifndef CONFIG_HCS12_NONBANKED
-#  define REG_PPAGE          0
-#  define REG_FIRST_SOFTREG  1
-#else
-#  define REG_FIRST_SOFTREG  0
-#endif
-
-/* Soft registers (as configured) */
-
-#if CONFIG_HCS12_MSOFTREGS > 2
-#  error "Need to save more registers"
-#elif CONFIG_HCS12_MSOFTREGS == 2
-#  define REG_SOFTREG1       REG_FIRST_SOFTREG
-#  define REG_SOFTREG2       (REG_FIRST_SOFTREG+2)
-#  define REG_FIRST_HARDREG  (REG_FIRST_SOFTREG+4)
-#elif CONFIG_HCS12_MSOFTREGS == 1
-#  define REG_SOFTREG1       REG_FIRST_SOFTREG
-#  define REG_FIRST_HARDREG  (REG_FIRST_SOFTREG+2)
-#else
-#  define REG_FIRST_HARDREG  REG_FIRST_SOFTREG
-#endif
-
-#define REG_XY               REG_FIRST_HARDREG
-#define REG_Z                (REG_FIRST_HARDREG+2)
-#  define REG_ZH             (REG_FIRST_HARDREG+2)
-#  define REG_ZL             (REG_FIRST_HARDREG+3)
-#define REG_TMP              (REG_FIRST_HARDREG+4)
-#  define REG_TMPH           (REG_FIRST_HARDREG+4)
-#  define REG_TMPL           (REG_FIRST_HARDREG+5)
-#define REG_FRAME            (REG_FIRST_HARDREG+6)
-#  define REG_FRAMEH         (REG_FIRST_HARDREG+6)
-#  define REG_FRAMEL         (REG_FIRST_HARDREG+7)
-
-/* Stack pointer before the interrupt */
-
-#define REG_SP               (REG_FIRST_HARDREG+8)
-#  define REG_SPH            (REG_FIRST_HARDREG+8)
-#  define REG_SPL            (REG_FIRST_HARDREG+9)
-
-/* On entry into an I- or X-interrupt, into an SWI, or into an undefined instruction
- * interrupt, the stack frame created by hardware looks like:
- *
- * Low Address       <-- SP after interrupt
- *              CCR
- *              B
- *              A
- *              XH
- *              XL
- *              YH
- *              YL
- *              PCH
- * High Address PCL  <-- SP before interrupt
+ ****************************************************************************/
+/* Configuration ************************************************************/
+/* The global pointer (GP) does not need to be saved in the "normal," flat
+ * NuttX build.  However, it would be necessary to save the GP if this is
+ * a KERNEL build or if NXFLAT is supported.
  */
 
-#define REG_CCR              (REG_FIRST_HARDREG+10)
-#define REG_BA               (REG_FIRST_HARDREG+11)
-#  define REG_B              (REG_FIRST_HARDREG+11)
-#  define REG_A              (REG_FIRST_HARDREG+12)
-#define REG_X                (REG_FIRST_HARDREG+13)
-#  define REG_XH             (REG_FIRST_HARDREG+13)
-#  define REG_XL             (REG_FIRST_HARDREG+14)
-#define REG_Y                (REG_FIRST_HARDREG+15)
-#  define REG_YH             (REG_FIRST_HARDREG+15)
-#  define REG_YL             (REG_FIRST_HARDREG+16)
-#define REG_PC               (REG_FIRST_HARDREG+17)
-#  define REG_PCH            (REG_FIRST_HARDREG+17)
-#  define REG_PCL            (REG_FIRST_HARDREG+18)
+#undef NIOS2_SAVE_GP
+#if defined(CONFIG_BUILD_KERNEL) || defined(CONFIG_NXFLAT)
+#  define NIOS2_SAVE_GP 1
+#endif
 
-#define TOTALFRAME_SIZE      (REG_FIRST_HARDREG+17)
-#define INTFRAME_SIZE        9
-#define XCPTCONTEXT_REGS     TOTALFRAME_SIZE
+/* If this is a kernel build, how many nested system calls should we support? */
 
-/************************************************************************************
+#ifndef CONFIG_SYS_NNEST
+#  define CONFIG_SYS_NNEST 2
+#endif
+
+/* Register save state structure ********************************************/
+/* Co processor registers */
+
+#define REG_MFLO_NDX        0
+#define REG_MFHI_NDX        1
+#define REG_EPC_NDX         2
+#define REG_STATUS_NDX      3
+
+/* General pupose registers */
+/* $0: Zero register does not need to be saved */
+/* $1: at_reg, assembler temporary */
+
+#define REG_R1_NDX          4
+
+/* $2-$3 = v0-v1: Return value registers */
+
+#define REG_R2_NDX          5
+#define REG_R3_NDX          6
+
+/* $4-$7 = a0-a3: Argument registers */
+
+#define REG_R4_NDX          7
+#define REG_R5_NDX          8
+#define REG_R6_NDX          9
+#define REG_R7_NDX          10
+
+/* $8-$15 = t0-t7: Volatile registers */
+
+#define REG_R8_NDX          11
+#define REG_R9_NDX          12
+#define REG_R10_NDX         13
+#define REG_R11_NDX         14
+#define REG_R12_NDX         15
+#define REG_R13_NDX         16
+#define REG_R14_NDX         17
+#define REG_R15_NDX         18
+
+/* $16-$23 = s0-s7: Static registers */
+
+#define REG_R16_NDX         19
+#define REG_R17_NDX         20
+#define REG_R18_NDX         21
+#define REG_R19_NDX         22
+#define REG_R20_NDX         23
+#define REG_R21_NDX         24
+#define REG_R22_NDX         25
+#define REG_R23_NDX         26
+
+/* $24-25 = t8-t9: More Volatile registers */
+
+#define REG_R24_NDX         27
+#define REG_R25_NDX         28
+
+/* $26-$27 = ko-k1: Reserved for use in exeption handers.  These do not need
+ * to be saved.
+ */
+
+/* $28 = gp: Only needs to be saved under conditions where there are
+ * multiple, per-thread values for the GP.
+ */
+
+#ifdef NIOS2_SAVE_GP
+
+#  define REG_R28_NDX       29
+
+/* $29 = sp:  The value of the stack pointer on return from the exception */
+
+#  define REG_R29_NDX       30
+
+/* $30 = either s8 or fp:  Depends if a frame pointer is used or not */
+
+#  define REG_R30_NDX       31
+
+/* $31 = ra: Return address */
+
+#  define REG_R31_NDX       32
+#  define XCPTCONTEXT_REGS  33
+#else
+
+/* $29 = sp:  The value of the stack pointer on return from the exception */
+
+#  define REG_R29_NDX       29
+
+/* $30 = either s8 or fp:  Depends if a frame pointer is used or not */
+
+#  define REG_R30_NDX       30
+
+/* $31 = ra: Return address */
+
+#  define REG_R31_NDX       31
+#  define XCPTCONTEXT_REGS  32
+#endif
+#define XCPTCONTEXT_SIZE    (4 * XCPTCONTEXT_REGS)
+
+/* In assembly language, values have to be referenced as byte address
+ * offsets.  But in C, it is more convenient to reference registers as
+ * register save table offsets.
+ */
+
+#ifdef __ASSEMBLY__
+#  define REG_MFLO          (4*REG_MFLO_NDX)
+#  define REG_MFHI          (4*REG_MFHI_NDX)
+#  define REG_EPC           (4*REG_EPC_NDX)
+#  define REG_STATUS        (4*REG_STATUS_NDX)
+#  define REG_R1            (4*REG_R1_NDX)
+#  define REG_R2            (4*REG_R2_NDX)
+#  define REG_R3            (4*REG_R3_NDX)
+#  define REG_R4            (4*REG_R4_NDX)
+#  define REG_R5            (4*REG_R5_NDX)
+#  define REG_R6            (4*REG_R6_NDX)
+#  define REG_R7            (4*REG_R7_NDX)
+#  define REG_R8            (4*REG_R8_NDX)
+#  define REG_R9            (4*REG_R9_NDX)
+#  define REG_R10           (4*REG_R10_NDX)
+#  define REG_R11           (4*REG_R11_NDX)
+#  define REG_R12           (4*REG_R12_NDX)
+#  define REG_R13           (4*REG_R13_NDX)
+#  define REG_R14           (4*REG_R14_NDX)
+#  define REG_R15           (4*REG_R15_NDX)
+#  define REG_R16           (4*REG_R16_NDX)
+#  define REG_R17           (4*REG_R17_NDX)
+#  define REG_R18           (4*REG_R18_NDX)
+#  define REG_R19           (4*REG_R19_NDX)
+#  define REG_R20           (4*REG_R20_NDX)
+#  define REG_R21           (4*REG_R21_NDX)
+#  define REG_R22           (4*REG_R22_NDX)
+#  define REG_R23           (4*REG_R23_NDX)
+#  define REG_R24           (4*REG_R24_NDX)
+#  define REG_R25           (4*REG_R25_NDX)
+#  ifdef NIOS2_SAVE_GP
+#    define REG_R28         (4*REG_R28_NDX)
+#  endif
+#  define REG_R29           (4*REG_R29_NDX)
+#  define REG_R30           (4*REG_R30_NDX)
+#  define REG_R31           (4*REG_R31_NDX)
+#else
+#  define REG_MFLO          REG_MFLO_NDX
+#  define REG_MFHI          REG_MFHI_NDX
+#  define REG_EPC           REG_EPC_NDX
+#  define REG_STATUS        REG_STATUS_NDX
+#  define REG_R1            REG_R1_NDX
+#  define REG_R2            REG_R2_NDX
+#  define REG_R3            REG_R3_NDX
+#  define REG_R4            REG_R4_NDX
+#  define REG_R5            REG_R5_NDX
+#  define REG_R6            REG_R6_NDX
+#  define REG_R7            REG_R7_NDX
+#  define REG_R8            REG_R8_NDX
+#  define REG_R9            REG_R9_NDX
+#  define REG_R10           REG_R10_NDX
+#  define REG_R11           REG_R11_NDX
+#  define REG_R12           REG_R12_NDX
+#  define REG_R13           REG_R13_NDX
+#  define REG_R14           REG_R14_NDX
+#  define REG_R15           REG_R15_NDX
+#  define REG_R16           REG_R16_NDX
+#  define REG_R17           REG_R17_NDX
+#  define REG_R18           REG_R18_NDX
+#  define REG_R19           REG_R19_NDX
+#  define REG_R20           REG_R20_NDX
+#  define REG_R21           REG_R21_NDX
+#  define REG_R22           REG_R22_NDX
+#  define REG_R23           REG_R23_NDX
+#  define REG_R24           REG_R24_NDX
+#  define REG_R25           REG_R25_NDX
+#  ifdef NIOS2_SAVE_GP
+#    define REG_R28         REG_R28_NDX
+#  endif
+#  define REG_R29           REG_R29_NDX
+#  define REG_R30           REG_R30_NDX
+#  define REG_R31           REG_R31_NDX
+#endif
+
+/* Now define more user friendly alternative name that can be used either
+ * in assembly or C contexts.
+ */
+
+/* $1: at_reg, assembler temporary */
+
+#define REG_AT              REG_R1
+
+/* $2-$3 = v0-v1: Return value registers */
+
+#define REG_V0              REG_R2
+#define REG_V1              REG_R3
+
+/* $4-$7 = a0-a3: Argument registers */
+
+#define REG_A0              REG_R4
+#define REG_A1              REG_R5
+#define REG_A2              REG_R6
+#define REG_A3              REG_R7
+
+/* $8-$15 = t0-t7: Volatile registers */
+
+#define REG_T0              REG_R8
+#define REG_T1              REG_R9
+#define REG_T2              REG_R10
+#define REG_T3              REG_R11
+#define REG_T4              REG_R12
+#define REG_T5              REG_R13
+#define REG_T6              REG_R14
+#define REG_T7              REG_R15
+
+/* $16-$23 = s0-s7: Static registers */
+
+#define REG_S0              REG_R16
+#define REG_S1              REG_R17
+#define REG_S2              REG_R18
+#define REG_S3              REG_R19
+#define REG_S4              REG_R20
+#define REG_S5              REG_R21
+#define REG_S6              REG_R22
+#define REG_S7              REG_R23
+
+/* $24-25 = t8-t9: More Volatile registers */
+
+#define REG_T8              REG_R24
+#define REG_T9              REG_R25
+
+/* $28 = gp: Only needs to be saved under conditions where there are
+ * multiple, per-thread values for the GP.
+ */
+
+#ifdef NIOS2_SAVE_GP
+#  define REG_GP            REG_R28
+#endif
+
+/* $29 = sp:  The value of the stack pointer on return from the exception */
+
+#define REG_SP              REG_R29
+
+/* $30 = either s8 or fp:  Depends if a frame pointer is used or not */
+
+#define REG_S8              REG_R30
+#define REG_FP              REG_R30
+
+/* $31 = ra: Return address */
+
+#define REG_RA              REG_R31
+
+/****************************************************************************
  * Public Types
- ************************************************************************************/
-
-/* This structure defines the way the registers are stored. */
+ ****************************************************************************/
 
 #ifndef __ASSEMBLY__
+
+/* This structure represents the return state from a system call */
+
+#ifdef CONFIG_BUILD_KERNEL
+struct xcpt_syscall_s
+{
+  uint32_t sysreturn;   /* The return PC */
+};
+#endif
+
+/* The following structure is included in the TCB and defines the complete
+ * state of the thread.
+ */
+
 struct xcptcontext
 {
-  uint8_t regs[XCPTCONTEXT_REGS];
+#ifndef CONFIG_DISABLE_SIGNALS
+  /* The following function pointer is non-NULL if there are pending signals
+   * to be processed.
+   */
+
+  void *sigdeliver; /* Actual type is sig_deliver_t */
+
+  /* These additional register save locations are used to implement the
+   * signal delivery trampoline.
+   */
+
+  uint32_t saved_epc;    /* Trampoline PC */
+  uint32_t saved_status; /* Status with interrupts disabled. */
+
+# ifdef CONFIG_BUILD_KERNEL
+  /* This is the saved address to use when returning from a user-space
+   * signal handler.
+   */
+
+  uint32_t sigreturn;
+
+# endif
+#endif
+
+#ifdef CONFIG_BUILD_KERNEL
+  /* The following array holds information needed to return from each nested
+   * system call.
+   */
+
+  uint8_t nsyscalls;
+  struct xcpt_syscall_s syscall[CONFIG_SYS_NNEST];
+
+#endif
+
+  /* Register save area */
+
+  uint32_t regs[XCPTCONTEXT_REGS];
 };
 
 /****************************************************************************
  * Inline functions
  ****************************************************************************/
 
-/* Name: up_irq_save, up_irq_restore, and friends.
+/****************************************************************************
+ * Name: cp0_getstatus
  *
- * NOTE: This function should never be called from application code and,
- * as a general rule unless you really know what you are doing, this
- * function should not be called directly from operation system code either:
- * Typically, the wrapper functions, enter_critical_section() and
- * leave_critical section(), are probably what you really want.
- */
+ * Description:
+ *   Read the CP0 STATUS register
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   None
+ *
+ ****************************************************************************/
 
-/* Enable/Disable interrupts */
-
-#define ienable()  __asm("cli");
-#define idisable() __asm("orcc #0x10")
-#define xenable()  __asm("andcc #0xbf")
-#define xdisable() __asm("orcc #0x40")
-
-/* Get the current value of the stack pointer */
-
-static inline uint16_t up_getsp(void)
+static inline irqstate_t cp0_getstatus(void)
 {
-  uint16_t ret;
-  __asm__
-  (
-    "\tsts %0\n"
-	: "=m"(ret) :
-  );
-  return ret;
+  register irqstate_t status;
+  __asm__ __volatile__
+    (
+      "\t.set    push\n"
+      "\t.set    noat\n"
+      "\t mfc0   %0, $12, 0\n"           /* Get CP0 status register */
+      "\t.set    pop\n"
+      : "=r" (status)
+      :
+      : "memory"
+    );
+
+  return status;
 }
 
-/* Get the current value of the CCR */
+/****************************************************************************
+ * Name: cp0_putstatus
+ *
+ * Description:
+ *   Write the CP0 STATUS register
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   None
+ *
+ ****************************************************************************/
 
-static inline irqstate_t up_getccr(void)
+static inline void cp0_putstatus(irqstate_t status)
 {
-  irqstate_t ccr;
-  __asm__
-  (
-    "\ttpa\n"
-    "\tstaa %0\n"
-    : "=m"(ccr) :
-  );
-  return ccr;
+  __asm__ __volatile__
+    (
+      "\t.set    push\n"
+      "\t.set    noat\n"
+      "\t.set    noreorder\n"
+      "\tmtc0   %0, $12, 0\n"            /* Set the status to the provided value */
+      "\tnop\n"                          /* MTC0 status hazard: */
+      "\tnop\n"                          /* Recommended spacing: 3 */
+      "\tnop\n"
+      "\tnop\n"                          /* Plus one for good measure */
+      "\t.set    pop\n"
+      :
+      : "r" (status)
+      : "memory"
+    );
 }
 
-/* Save the current interrupt enable state & disable IRQs */
+/****************************************************************************
+ * Name: cp0_getcause
+ *
+ * Description:
+ *   Get the CP0 CAUSE register
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   None
+ *
+ ****************************************************************************/
 
-static inline irqstate_t up_irq_save(void)
+static inline uint32_t cp0_getcause(void)
 {
-  irqstate_t context;
-  context = (irqstate_t)alt_irq_disable_all();
-  return context;
+  register uint32_t cause;
+  __asm__ __volatile__
+    (
+      "\t.set    push\n"
+      "\t.set    noat\n"
+      "\t mfc0   %0, $13, 0\n"           /* Get CP0 cause register */
+      "\t.set    pop\n"
+      : "=r" (cause)
+      :
+      : "memory"
+    );
+
+  return cause;
 }
 
-/* Restore saved interrupt state */
+/****************************************************************************
+ * Name: cp0_putcause
+ *
+ * Description:
+ *   Write the CP0 CAUSE register
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   None
+ *
+ ****************************************************************************/
 
-static inline void up_irq_restore(irqstate_t flags)
+static inline void cp0_putcause(uint32_t cause)
 {
-  alt_irq_enable_all(flags);
+  __asm__ __volatile__
+    (
+      "\t.set    push\n"
+      "\t.set    noat\n"
+      "\t.set    noreorder\n"
+      "\tmtc0   %0, $13, 0\n"            /* Set the cause to the provided value */
+      "\t.set    pop\n"
+      :
+      : "r" (cause)
+      : "memory"
+    );
 }
 
-/* System call */
-
-static inline void system_call3(unsigned int nbr, uintptr_t parm1,
-                                uintptr_t parm2, uintptr_t parm3)
-{
-  /* To be provided */
-  /* __asm("swi") */
-}
-
-/************************************************************************************
+/****************************************************************************
  * Public Data
- ************************************************************************************/
+ ****************************************************************************/
+
+/****************************************************************************
+ * Public Function Prototypes
+ ****************************************************************************/
 
 #ifdef __cplusplus
 #define EXTERN extern "C"
@@ -258,14 +512,56 @@ extern "C"
 #define EXTERN extern
 #endif
 
-/************************************************************************************
- * Public Functions
- ************************************************************************************/
+/****************************************************************************
+ * Name: up_irq_save
+ *
+ * Description:
+ *   Save the current interrupt state and disable interrupts.
+ *
+ *   NOTE: This function should never be called from application code and,
+ *   as a general rule unless you really know what you are doing, this
+ *   function should not be called directly from operation system code either:
+ *   Typically, the wrapper functions, enter_critical_section() is probably
+ *   what you really want.
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   Interrupt state prior to disabling interrupts.
+ *
+ ****************************************************************************/
+
+irqstate_t up_irq_save(void);
+
+/****************************************************************************
+ * Name: up_irq_restore
+ *
+ * Description:
+ *   Restore the previous interrupt state (i.e., the one previously returned
+ *   by up_irq_save())
+ *
+ *   NOTE: This function should never be called from application code and,
+ *   as a general rule unless you really know what you are doing, this
+ *   function should not be called directly from operation system code either:
+ *   Typically, the wrapper functions, leave_critical_section() is probably
+ *   what you really want.
+ *
+ * Input Parameters:
+ *   state - The interrupt state to be restored.
+ *
+ * Returned Value:
+ *   None
+ *
+ ****************************************************************************/
+
+void up_irq_restore(irqstate_t irqtate);
 
 #undef EXTERN
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __ASSEMBLY__ */
-#endif /* __ARCH_HC_INCLUDE_HCS12_IRQ_H */
+#endif /* __ASSEMBLY */
+#endif /* __ARCH_NIOS_INCLUDE_NIOS2_IRQ_H */
+

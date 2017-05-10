@@ -1,8 +1,8 @@
 ############################################################################
-# arch/hc/src/Makefile
+# arch/nios/src/Makefile
 #
-#   Copyright (C) 2009, 2011-2012, 2014, 2016 Gregory Nutt. All rights reserved.
-#   Author: Gregory Nutt <gnutt@nuttx.org>
+#   Copyright (C) 2017 Alex Shi. All rights reserved.
+#   Author: Alex Shi <shiweining123@gmail.com>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,11 +36,8 @@
 -include $(TOPDIR)/Make.defs
 -include chip/Make.defs
 
-ifeq ($(CONFIG_ARCH_HC12),y)
-ARCH_SUBDIR = hc12
-endif
-ifeq ($(CONFIG_ARCH_HCS12),y)
-ARCH_SUBDIR = hcs12
+ifeq ($(CONFIG_ARCH_NIOS2),y)
+ARCH_SUBDIR = nios2
 endif
 
 CPPFLAGS += $(EXTRADEFINES)
@@ -142,7 +139,7 @@ board/libboard$(LIBEXT):
 
 nuttx$(EXEEXT): $(HEAD_OBJ) board/libboard$(LIBEXT)
 	$(Q) echo "LD: nuttx"
-	$(Q) $(LD) --entry=__start $(LDFLAGS) $(LIBPATHS) -o $(NUTTX)$(EXEEXT) $(HEAD_OBJ) \
+	$(Q) $(LD) --entry=__start $(LDFLAGS) $(LIBPATHS) -o $(NUTTX)$(EXEEXT) $(HEAD_OBJ) $(EXTRA_OBJS) \
 		$(LDSTARTGROUP) $(LDLIBS) $(EXTRA_LIBS) $(LIBGCC) $(LDENDGROUP)
 ifneq ($(CONFIG_WINDOWS_NATIVE),y)
 	$(Q) $(NM) $(NUTTX)$(EXEEXT) | \

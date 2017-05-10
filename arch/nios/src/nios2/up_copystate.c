@@ -1,8 +1,8 @@
 /****************************************************************************
- * arch/nios/include/nios2/types.h
+ * arch/nios/src/nios2/up_copystate.c
  *
- *   Copyright (C) 2017 Alex Shi. All rights reserved.
- *   Author: Alex Shi <shiweining123@gmail.com>
+ *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
+ *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,62 +33,54 @@
  *
  ****************************************************************************/
 
-/* This file should never be included directed but, rather, only indirectly
- * through stdint.h
- */
-
-#ifndef __ARCH_NIOS_INCLUDE_NIOS2_TYPES_H
-#define __ARCH_NIOS_INCLUDE_NIOS2_TYPES_H
-
 /****************************************************************************
  * Included Files
  ****************************************************************************/
+
+#include <nuttx/config.h>
+
+#include <stdint.h>
+#include <arch/irq.h>
+
+#include "up_internal.h"
 
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
 
 /****************************************************************************
- * Type Declarations
+ * Private Data
  ****************************************************************************/
-
-#ifndef __ASSEMBLY__
-
-/* These are the sizes of the standard integer types.  NOTE that these type
- * names have a leading underscore character.  This file will be included
- * (indirectly) by include/stdint.h and typedef'ed to the final name without
- * the underscore character.  This roundabout way of doings things allows
- * the stdint.h to be removed from the include/ directory in the event that
- * the user prefers to use the definitions provided by their toolchain header
- * files
- */
-
-typedef signed char        _int8_t;
-typedef unsigned char      _uint8_t;
-
-typedef signed short       _int16_t;
-typedef unsigned short     _uint16_t;
-
-typedef signed int         _int32_t;
-typedef unsigned int       _uint32_t;
-
-typedef signed long long   _int64_t;
-typedef unsigned long long _uint64_t;
-#define __INT64_DEFINED
-
-/* A pointer is 4 bytes */
-
-typedef signed int         _intptr_t;
-typedef unsigned int       _uintptr_t;
-
-/* This is the size of the interrupt state save returned by up_irq_save(). */
-
-typedef unsigned int       irqstate_t;
-
-#endif /* __ASSEMBLY__ */
 
 /****************************************************************************
- * Public Function Prototypes
+ * Private Functions
  ****************************************************************************/
 
-#endif /* __ARCH_NIOS_INCLUDE_NIOS2_TYPES_H */
+/****************************************************************************
+ * Public Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: up_copystate
+ ****************************************************************************/
+
+/* A little faster than most memcpy's */
+
+void up_copystate(uint32_t *dest, uint32_t *src)
+{
+  int i;
+
+  /* In the NIOS model, the state is copied from the stack to the TCB,
+   * but only a reference is passed to get the state from the TCB.  So the
+   * following check avoids copying the TCB save area onto itself:
+   */
+
+  if (src != dest)
+    {
+      for (i = 0; i < XCPTCONTEXT_REGS; i++)
+        {
+          *dest++ = *src++;
+        }
+    }
+}
+

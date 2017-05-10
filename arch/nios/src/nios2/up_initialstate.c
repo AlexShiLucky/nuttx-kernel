@@ -1,7 +1,7 @@
 /****************************************************************************
- * arch/nios/src/common/up_usestack.c
+ * arch/nios/src/nios2/up_initialstate.c
  *
- *   Copyright (C) 2009, 2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,40 +41,25 @@
 
 #include <sys/types.h>
 #include <stdint.h>
-#include <sched.h>
-#include <debug.h>
+#include <string.h>
 
-#include <nuttx/kmalloc.h>
 #include <nuttx/arch.h>
+#include <arch/irq.h>
+#include <arch/nios2/cp0.h>
 
 #include "up_internal.h"
+#include "up_arch.h"
 
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
 
-/* NIOS requires at least a 4-byte stack alignment.  For floating point use,
- * however, the stack must be aligned to 8-byte addresses.
- */
-
-#ifdef CONFIG_LIBC_FLOATINGPOINT
-#  define STACK_ALIGNMENT   8
-#else
-#  define STACK_ALIGNMENT   4
-#endif
-
-/* Stack alignment macros */
-
-#define STACK_ALIGN_MASK    (STACK_ALIGNMENT-1)
-#define STACK_ALIGN_DOWN(a) ((a) & ~STACK_ALIGN_MASK)
-#define STACK_ALIGN_UP(a)   (((a) + STACK_ALIGN_MASK) & ~STACK_ALIGN_MASK)
-
 /****************************************************************************
- * Private Types
+ * Private Data
  ****************************************************************************/
 
 /****************************************************************************
- * Private Function Prototypes
+ * Private Functions
  ****************************************************************************/
 
 /****************************************************************************
@@ -82,71 +67,82 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_use_stack
+ * Name: up_initial_state
  *
  * Description:
- *   Setup up stack-related information in the TCB using pre-allocated stack
- *   memory.  This function is called only from task_init() when a task or
- *   kernel thread is started (never for pthreads).
+ *   A new thread is being started and a new TCB
+ *   has been created. This function is called to initialize
+ *   the processor specific portions of the new TCB.
  *
- *   The following TCB fields must be initialized:
- *
- *   - adj_stack_size: Stack size after adjustment for hardware,
- *     processor, etc.  This value is retained only for debug
- *     purposes.
- *   - stack_alloc_ptr: Pointer to allocated stack
- *   - adj_stack_ptr: Adjusted stack_alloc_ptr for HW.  The
- *     initial value of the stack pointer.
- *
- * Inputs:
- *   - tcb: The TCB of new task
- *   - stack_size:  The allocated stack size.
- *
- *   NOTE:  Unlike up_stack_create() and up_stack_release, this function
- *   does not require the task type (ttype) parameter.  The TCB flags will
- *   always be set to provide the task type to up_use_stack() if it needs
- *   that information.
+ *   This function must setup the intial architecture registers
+ *   and/or  stack so that execution will begin at tcb->start
+ *   on the next context switch.
  *
  ****************************************************************************/
 
-int up_use_stack(struct tcb_s *tcb, void *stack, size_t stack_size)
+void up_initial_state(struct tcb_s *tcb)
 {
-  size_t top_of_stack;
-  size_t size_of_stack;
+  struct xcptcontext *xcp = &tcb->xcp;
+  uint32_t regval;
 
-  /* Is there already a stack allocated? */
+  /* Initialize the initial exception register context structure */
 
-  if (tcb->stack_alloc_ptr && tcb->adj_stack_size != stack_size)
-    {
-      /* Yes.. Release the old stack allocation */
+  memset(xcp, 0, sizeof(struct xcptcontext));
 
-      up_release_stack(tcb, tcb->flags & TCB_FLAG_TTYPE_MASK);
-    }
-
-  /* Save the new stack allocation */
-
-  tcb->stack_alloc_ptr = stack;
-
-  /* NIOS uses a push-down stack:  the stack grows toward loweraddresses in
-   * memory.  The stack pointer register, points to the lowest, valid work
-   * address (the "top" of the stack).  Items on the stack are referenced
-   * as positive word offsets from sp.
+  /* Save the initial stack pointer.  Hmmm.. the stack is set to the very
+   * beginning of the stack region.  Some functions may want to store data on
+   * the caller's stack and it might be good to reserve some space.  However,
+   * only the start function would do that and we have control over that one
    */
 
-  top_of_stack = (uint32_t)tcb->stack_alloc_ptr + stack_size - 4;
+  xcp->regs[REG_SP]      = (uint32_t)tcb->adj_stack_ptr;
 
-  /* The NIOS stack must be aligned at word (4 byte) or double word (8 byte)
-   * boundaries. If necessary top_of_stack must be rounded down to the
-   * next boundary
+  /* Save the task entry point */
+
+  xcp->regs[REG_EPC]     = (uint32_t)tcb->start;
+
+  /* If this task is running PIC, then set the PIC base register to the
+   * address of the allocated D-Space region.
    */
 
-  top_of_stack = STACK_ALIGN_DOWN(top_of_stack);
-  size_of_stack = top_of_stack - (uint32_t)tcb->stack_alloc_ptr + 4;
+#ifdef CONFIG_PIC
+#  warning "Missing logic"
+#endif
 
-  /* Save the adjusted stack values in the struct tcb_s */
+  /* Set privileged- or unprivileged-mode, depending on how NuttX is
+   * configured and what kind of thread is being started.
+   *
+   * If the kernel build is not selected, then all threads run in
+   * privileged thread mode.
+   */
 
-  tcb->adj_stack_ptr  = (uint32_t *)top_of_stack;
-  tcb->adj_stack_size = size_of_stack;
+#ifdef CONFIG_BUILD_KERNEL
+#  warning "Missing logic"
+#endif
 
-  return OK;
+  /* Set the initial value of the status register.  It will be the same
+   * as the current status register with some changes:
+   *
+   * 1. Make sure the IE is set
+   * 2. Clear the BEV bit (This bit should already be clear)
+   * 3. Clear the UM bit so that the new task executes in kernel mode
+   *   (This bit should already be clear)
+   * 4. Set the interrupt mask bits (depending on configuration)
+   * 5. Set the EXL bit (This will not be set)
+   *
+   * The EXL bit is set because this new STATUS register will be
+   * instantiated in kernel mode inside of an interrupt handler. EXL
+   * will be automatically cleared by the eret instruction.
+   */
+
+  regval  = cp0_getstatus();
+#ifdef CONFIG_SUPPRESS_INTERRUPTS
+  regval &= ~(CP0_STATUS_IM_ALL | CP0_STATUS_BEV | CP0_STATUS_UM);
+  regval |=  (CP0_STATUS_IE | CP0_STATUS_EXL | CP0_STATUS_IM_SWINTS);
+#else
+  regval &= ~(CP0_STATUS_BEV | CP0_STATUS_UM);
+  regval |=  (CP0_STATUS_IE | CP0_STATUS_EXL | CP0_STATUS_IM_ALL);
+#endif
+  xcp->regs[REG_STATUS] = regval;
 }
+

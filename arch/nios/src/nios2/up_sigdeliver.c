@@ -1,8 +1,8 @@
 /****************************************************************************
- * arch/nios/include/arch.h
+ * arch/nios/src/nios2/up_sigdeliver.c
  *
- *   Copyright (C) 2017 Alex Shi. All rights reserved.
- *   Author: Alex Shi <shiweining123@gmail.com>
+ *   Copyright (C) 2011, 2015 Gregory Nutt. All rights reserved.
+ *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,50 +33,118 @@
  *
  ****************************************************************************/
 
-/* This file should never be included directed but, rather,
- * only indirectly through nuttx/arch.h
- */
-
-#ifndef __ARCH_NIOS_INCLUDE_ARCH_H
-#define __ARCH_NIOS_INCLUDE_ARCH_H
-
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
 
+#include <stdint.h>
+#include <sched.h>
+#include <syscall.h>
+#include <debug.h>
+
+#include <nuttx/irq.h>
+#include <nuttx/arch.h>
+#include <nuttx/board.h>
+#include <arch/board/board.h>
+
+#include "sched/sched.h"
+#include "up_internal.h"
+#include "up_arch.h"
+
+#ifndef CONFIG_DISABLE_SIGNALS
+
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
 
 /****************************************************************************
- * Inline functions
+ * Private Data
  ****************************************************************************/
 
 /****************************************************************************
- * Public Types
+ * Private Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Public Data
+ * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Public Function Prototypes
+ * Name: up_sigdeliver
+ *
+ * Description:
+ *   This is the a signal handling trampoline.  When a signal action was
+ *   posted.  The task context was mucked with and forced to branch to this
+ *   location with interrupts disabled.
+ *
  ****************************************************************************/
 
-#ifdef __cplusplus
-#define EXTERN extern "C"
-extern "C"
+void up_sigdeliver(void)
 {
-#else
-#define EXTERN extern
-#endif
+  struct tcb_s *rtcb = this_task();
+  uint32_t regs[XCPTCONTEXT_REGS];
+  sig_deliver_t sigdeliver;
 
-#undef EXTERN
-#ifdef __cplusplus
+  /* Save the errno.  This must be preserved throughout the signal handling
+   * so that the user code final gets the correct errno value (probably
+   * EINTR).
+   */
+
+  int saved_errno = rtcb->pterrno;
+
+  board_autoled_on(LED_SIGNAL);
+
+  sinfo("rtcb=%p sigdeliver=%p sigpendactionq.head=%p\n",
+        rtcb, rtcb->xcp.sigdeliver, rtcb->sigpendactionq.head);
+  ASSERT(rtcb->xcp.sigdeliver != NULL);
+
+  /* Save the real return state on the stack. */
+
+  up_copystate(regs, rtcb->xcp.regs);
+  regs[REG_EPC]        = rtcb->xcp.saved_epc;
+  regs[REG_STATUS]     = rtcb->xcp.saved_status;
+
+  /* Get a local copy of the sigdeliver function pointer. We do this so that
+   * we can nullify the sigdeliver function pointer in the TCB and accept
+   * more signal deliveries while processing the current pending signals.
+   */
+
+  sigdeliver           = rtcb->xcp.sigdeliver;
+  rtcb->xcp.sigdeliver = NULL;
+
+  /* Then restore the task interrupt state */
+
+  up_irq_restore((irqstate_t)regs[REG_STATUS]);
+
+  /* Deliver the signals */
+
+  sigdeliver(rtcb);
+
+  /* Output any debug messages BEFORE restoring errno (because they may
+   * alter errno), then disable interrupts again and restore the original
+   * errno that is needed by the user logic (it is probably EINTR).
+   */
+
+  sinfo("Resuming EPC: %08x STATUS: %08x\n", regs[REG_EPC], regs[REG_STATUS]);
+
+  (void)up_irq_save();
+  rtcb->pterrno = saved_errno;
+
+  /* Then restore the correct state for this thread of
+   * execution.
+   */
+
+  board_autoled_off(LED_SIGNAL);
+  up_fullcontextrestore(regs);
+
+  /* up_fullcontextrestore() should not return but could if the software
+   * interrupts are disabled.
+   */
+
+  PANIC();
 }
-#endif
 
-#endif /* __ARCH_NIOS_INCLUDE_ARCH_H */
+#endif /* !CONFIG_DISABLE_SIGNALS */
+

@@ -1,8 +1,8 @@
 /****************************************************************************
  * arch/nios/include/syscall.h
  *
- *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
- *   Author: Gregory Nutt <gnutt@nuttx.org>
+ *   Copyright (C) 2017 Alex Shi. All rights reserved.
+ *   Author: Alex Shi <shiweining123@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,12 +37,18 @@
  * through include/syscall.h or include/sys/sycall.h
  */
 
-#ifndef _ARCH_HC_INCLUDE_SYSCALL_H
-#define _ARCH_HC_INCLUDE_SYSCALL_H
+#ifndef _ARCH_NIOS_INCLUDE_SYSCALL_H
+#define _ARCH_NIOS_INCLUDE_SYSCALL_H
 
 /****************************************************************************
  * Included Files
  ****************************************************************************/
+
+/* Include NIOS architecture-specific syscall macros */
+
+#ifdef CONFIG_ARCH_NIOS2
+# include <arch/nios2/syscall.h>
+#endif
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -79,5 +85,5 @@ extern "C"
 #endif
 #endif
 
-#endif /* _ARCH_HC_INCLUDE_SYSCALL_H */
+#endif /* _ARCH_NIOS_INCLUDE_SYSCALL_H */
 

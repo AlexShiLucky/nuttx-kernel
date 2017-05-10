@@ -53,11 +53,15 @@
  * Pre-processor Macros
  ****************************************************************************/
 
-/* The CPU12 stack should be aligned at half-word (2 byte) boundaries. If
- * necessary frame_size must be rounded up to the next boundary
+/* NIOS requires at least a 4-byte stack alignment.  For floating point use,
+ * however, the stack must be aligned to 8-byte addresses.
  */
 
-#define STACK_ALIGNMENT     2
+#ifdef CONFIG_LIBC_FLOATINGPOINT
+#  define STACK_ALIGNMENT   8
+#else
+#  define STACK_ALIGNMENT   4
+#endif
 
 /* Stack alignment macros */
 
@@ -132,11 +136,10 @@ FAR void *up_stack_frame(FAR struct tcb_s *tcb, size_t frame_size)
 
   /* Reset the initial stack pointer */
 
-  tcb->xcp.regs[REG_SPH] = (uint16_t)tcb->adj_stack_ptr >> 8;
-  tcb->xcp.regs[REG_SPL] = (uint16_t)tcb->adj_stack_ptr & 0xff;
+  tcb->xcp.regs[REG_SP] = (uint32_t)tcb->adj_stack_ptr;
 
   /* And return the pointer to the allocated region */
 
-  return (FAR void *)(topaddr + sizeof(uint16_t));
+  return (FAR void *)(topaddr + sizeof(uint32_t));
 }
 

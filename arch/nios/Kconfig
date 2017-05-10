@@ -3,29 +3,30 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
-if ARCH_HC
+if ARCH_NIOS
 
 choice
-	prompt "HC chip selection"
-	default ARCH_CHIP_MCS92S12NEC64
+    prompt "NIOS chip selection"
+    default ARCH_CHIP_NIOS2
 
-config ARCH_CHIP_MCS92S12NEC64
-	bool "MCS92S12NEC64"
-	select ARCH_HSC12
-	select MM_SMALL
-	---help---
-		Motorola/Freescale MCS92S12NEC64 (M9S12)
+config ARCH_CHIP_NIOS2
+    bool "NIOS2"
+    select ARCH_NIOS2
+    select MM_SMALL
+    ---help---
+        Altera NIOS2
 
 endchoice
 
-config ARCH_HSC12
-	bool
-	default n
+config ARCH_NIOS2
+    bool
+    default n
 
 config ARCH_CHIP
-	string
-	default "m9s12"		if ARCH_CHIP_MCS92S12NEC64
+    string
+    default "nios2"     if ARCH_CHIP_NIOS2
 
-source arch/hc/src/m9s12/Kconfig
+source arch/nios/src/common/Kconfig
+source arch/nios/src/nios2/Kconfig
 
-endif # ARCH_HC
+endif # ARCH_NIOS

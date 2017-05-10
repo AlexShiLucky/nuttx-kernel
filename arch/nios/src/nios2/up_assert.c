@@ -1,8 +1,8 @@
 /****************************************************************************
- * arch/nios/include/arch.h
+ * arch/nios/src/nios2/up_assert.c
  *
- *   Copyright (C) 2017 Alex Shi. All rights reserved.
- *   Author: Alex Shi <shiweining123@gmail.com>
+ *   Copyright (C) 2011-2015 Gregory Nutt. All rights reserved.
+ *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,50 +33,129 @@
  *
  ****************************************************************************/
 
-/* This file should never be included directed but, rather,
- * only indirectly through nuttx/arch.h
- */
-
-#ifndef __ARCH_NIOS_INCLUDE_ARCH_H
-#define __ARCH_NIOS_INCLUDE_ARCH_H
-
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <debug.h>
+
+#include <nuttx/irq.h>
+#include <nuttx/arch.h>
+#include <nuttx/board.h>
+#include <nuttx/usb/usbdev_trace.h>
+
+#include <arch/board/board.h>
+
+#include "up_arch.h"
+#include "sched/sched.h"
+#include "up_internal.h"
+
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
+/* USB trace dumping */
 
-/****************************************************************************
- * Inline functions
- ****************************************************************************/
-
-/****************************************************************************
- * Public Types
- ****************************************************************************/
-
-/****************************************************************************
- * Public Data
- ****************************************************************************/
-
-/****************************************************************************
- * Public Function Prototypes
- ****************************************************************************/
-
-#ifdef __cplusplus
-#define EXTERN extern "C"
-extern "C"
-{
-#else
-#define EXTERN extern
+#ifndef CONFIG_USBDEV_TRACE
+#  undef CONFIG_ARCH_USBDUMP
 #endif
 
-#undef EXTERN
-#ifdef __cplusplus
+/****************************************************************************
+ * Private Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: _up_assert
+ ****************************************************************************/
+
+static void _up_assert(int errorcode) noreturn_function;
+static void _up_assert(int errorcode)
+{
+  /* Are we in an interrupt handler or the idle task? */
+
+  if (g_current_regs || this_task()->pid == 0)
+    {
+       (void)up_irq_save();
+        for (; ; )
+          {
+#ifdef CONFIG_ARCH_LEDS
+            board_autoled_on(LED_PANIC);
+            up_mdelay(250);
+            board_autoled_off(LED_PANIC);
+            up_mdelay(250);
+#endif
+          }
+    }
+  else
+    {
+      exit(errorcode);
+    }
+}
+
+/****************************************************************************
+ * Name: assert_tracecallback
+ ****************************************************************************/
+
+#ifdef CONFIG_ARCH_USBDUMP
+static int usbtrace_syslog(FAR const char *fmt, ...)
+{
+  va_list ap;
+  int ret;
+
+  /* Let vsyslog do the real work */
+
+  va_start(ap, fmt);
+  ret = vsyslog(LOG_EMERG, fmt, ap);
+  va_end(ap);
+  return ret;
+}
+
+static int assert_tracecallback(FAR struct usbtrace_s *trace, FAR void *arg)
+{
+  usbtrace_trprintf(usbtrace_syslog, trace->event, trace->value);
+  return 0;
 }
 #endif
 
-#endif /* __ARCH_NIOS_INCLUDE_ARCH_H */
+/****************************************************************************
+ * Public Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: up_assert
+ ****************************************************************************/
+
+void up_assert(const uint8_t *filename, int lineno)
+{
+#if CONFIG_TASK_NAME_SIZE > 0 && defined(CONFIG_DEBUG_ALERT)
+  struct tcb_s *rtcb = this_task();
+#endif
+
+  board_autoled_on(LED_ASSERTION);
+
+#if CONFIG_TASK_NAME_SIZE > 0
+  _alert("Assertion failed at file:%s line: %d task: %s\n",
+        filename, lineno, rtcb->name);
+#else
+  _alert("Assertion failed at file:%s line: %d\n",
+        filename, lineno);
+#endif
+
+  up_dumpstate();
+
+#ifdef CONFIG_ARCH_USBDUMP
+  /* Dump USB trace data */
+
+  (void)usbtrace_enumerate(assert_tracecallback, NULL);
+#endif
+
+#ifdef CONFIG_BOARD_CRASHDUMP
+  board_crashdump(up_getsp(), this_task(), filename, lineno);
+#endif
+
+  _up_assert(EXIT_FAILURE);
+}

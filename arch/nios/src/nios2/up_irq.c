@@ -1,8 +1,8 @@
 /****************************************************************************
- * arch/nios/include/nios2/types.h
+ * arch/nios/src/nios2/up_irq.c
  *
- *   Copyright (C) 2017 Alex Shi. All rights reserved.
- *   Author: Alex Shi <shiweining123@gmail.com>
+ *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
+ *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,62 +33,70 @@
  *
  ****************************************************************************/
 
-/* This file should never be included directed but, rather, only indirectly
- * through stdint.h
- */
-
-#ifndef __ARCH_NIOS_INCLUDE_NIOS2_TYPES_H
-#define __ARCH_NIOS_INCLUDE_NIOS2_TYPES_H
-
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
+#include <nuttx/config.h>
+
+#include <arch/irq.h>
+#include <arch/types.h>
+#include <arch/nios2/cp0.h>
+
 /****************************************************************************
- * Pre-processor Definitions
+ * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Type Declarations
+ * Name: up_irq_save
+ *
+ * Description:
+ *   Save the current interrupt state and disable interrupts.
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   Interrupt state prior to disabling interrupts.
+ *
  ****************************************************************************/
 
-#ifndef __ASSEMBLY__
+irqstate_t up_irq_save(void)
+{
+  register irqstate_t status;
+  register irqstate_t ret;
 
-/* These are the sizes of the standard integer types.  NOTE that these type
- * names have a leading underscore character.  This file will be included
- * (indirectly) by include/stdint.h and typedef'ed to the final name without
- * the underscore character.  This roundabout way of doings things allows
- * the stdint.h to be removed from the include/ directory in the event that
- * the user prefers to use the definitions provided by their toolchain header
- * files
- */
-
-typedef signed char        _int8_t;
-typedef unsigned char      _uint8_t;
-
-typedef signed short       _int16_t;
-typedef unsigned short     _uint16_t;
-
-typedef signed int         _int32_t;
-typedef unsigned int       _uint32_t;
-
-typedef signed long long   _int64_t;
-typedef unsigned long long _uint64_t;
-#define __INT64_DEFINED
-
-/* A pointer is 4 bytes */
-
-typedef signed int         _intptr_t;
-typedef unsigned int       _uintptr_t;
-
-/* This is the size of the interrupt state save returned by up_irq_save(). */
-
-typedef unsigned int       irqstate_t;
-
-#endif /* __ASSEMBLY__ */
+  status  = cp0_getstatus();       /* Get CP0 status */
+  ret     = status;                /* Save the status */
+  status &= ~CP0_STATUS_IM_MASK;   /* Clear all interrupt mask bits */
+  status |= CP0_STATUS_IM_SWINTS;  /* Keep S/W interrupts enabled */
+  cp0_putstatus(status);           /* Disable interrupts */
+  return ret;                      /* Return status before interrupts disabled */
+}
 
 /****************************************************************************
- * Public Function Prototypes
+ * Name: up_irq_restore
+ *
+ * Description:
+ *   Restore the previous interrutp state (i.e., the one previously returned
+ *   by up_irq_save())
+ *
+ * Input Parameters:
+ *   state - The interrupt state to be restored.
+ *
+ * Returned Value:
+ *   None
+ *
  ****************************************************************************/
 
-#endif /* __ARCH_NIOS_INCLUDE_NIOS2_TYPES_H */
+void up_irq_restore(irqstate_t irqstate)
+{
+  register irqstate_t status;
+
+  status    = cp0_getstatus();      /* Get CP0 status */
+  status   &= ~CP0_STATUS_IM_MASK;  /* Clear all interrupt mask bits */
+  irqstate &= CP0_STATUS_IM_MASK;   /* Retain interrupt mask bits only */
+  status   |= irqstate;             /* Set new interrupt mask bits */
+  status   |= CP0_STATUS_IM_SWINTS; /* Make sure that S/W interrupts enabled */
+  cp0_putstatus(status);            /* Restore interrupt state */
+}

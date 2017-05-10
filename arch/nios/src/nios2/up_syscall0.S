@@ -1,8 +1,8 @@
 /****************************************************************************
- * arch/nios/include/arch.h
+ * arch/nios/src/nios2/up_syscall0.S
  *
- *   Copyright (C) 2017 Alex Shi. All rights reserved.
- *   Author: Alex Shi <shiweining123@gmail.com>
+ *   Copyright (C) 2011, 2015 Gregory Nutt. All rights reserved.
+ *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,50 +33,86 @@
  *
  ****************************************************************************/
 
-/* This file should never be included directed but, rather,
- * only indirectly through nuttx/arch.h
- */
-
-#ifndef __ARCH_NIOS_INCLUDE_ARCH_H
-#define __ARCH_NIOS_INCLUDE_ARCH_H
-
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
 
+#include <arch/nios2/registers.h>
+#include <arch/nios2/cp0.h>
+
 /****************************************************************************
- * Pre-processor Definitions
+ * Public Symbols
+ ****************************************************************************/
+
+	.file	"up_syscall0.S"
+	.global sys_call0
+	.global sys_call1
+	.global sys_call2
+	.global sys_call3
+
+/****************************************************************************
+ * Private Data
  ****************************************************************************/
 
 /****************************************************************************
- * Inline functions
+ * Private Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Public Types
+ * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Public Data
+ * Name: up_syscall0, up_syscall1, up_syscall2, up_syscall3
+ *
+ * Description:
+ *   up_syscall0 - System call SYS_ argument and no additional parameters.
+ *   up_syscall1 - System call SYS_ argument and one additional parameter.
+ *   up_syscall2 - System call SYS_ argument and two additional parameters.
+ *   up_syscall3 - System call SYS_ argument and three additional parameters.
+ *
+ * Assumption:
+ *   All interrupts are disabled except for the software interrupts.
+ *
  ****************************************************************************/
 
-/****************************************************************************
- * Public Function Prototypes
- ****************************************************************************/
-
-#ifdef __cplusplus
-#define EXTERN extern "C"
-extern "C"
-{
-#else
-#define EXTERN extern
+	.text
+	.set	noreorder
+	.set	nonios16
+#ifdef CONFIG_NIOS_MICRONIOS
+	.set	micronios
 #endif
+	.ent	sys_call0
 
-#undef EXTERN
-#ifdef __cplusplus
-}
-#endif
+sys_call0:	/* r4 holds the syscall number */
+sys_call1:	/* r4 holds the syscall number, argument in r5 */
+sys_call2:	/* r4 holds the syscall number, arguments in r5 and r6 */
+sys_call3:	/* r4 holds the syscall number, arguments in r5, r6, and r7 */
 
-#endif /* __ARCH_NIOS_INCLUDE_ARCH_H */
+	.set	push
+	.set	noat
+
+	/* Set Bit 8 to request the software interrupt */
+
+	mfc0	t3, NIOS2_CP0_CAUSE	/* t3 = CP0 cause register */
+	ori		t3, (1 << 8)			/* Bit 8: Request software interrupt 0 */
+	.set	noreorder
+	mtc0	t3, NIOS2_CP0_CAUSE	/* Trigger the software interrupt */
+
+	/* The actual interrupt will not a occur for a few more cycles.  Let's
+	 * put a few nop's here in hope that the SW interrupt occurs during
+	 * the sequence of nops.
+	 */
+
+	nop
+	nop
+	nop
+	nop
+
+	/* Then return with the result of the software interrupt in v0 */
+
+	j		ra
+	nop
+	.end	sys_call0
