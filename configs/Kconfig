@@ -353,6 +353,16 @@ config ARCH_BOARD_LPC4337_WS
 	---help---
 		The WaveShare LPC4337-ws board featuring the NXP LPC4337JBD144 MCU.
 
+config ARCH_BOARD_LPC4357_DEV
+	bool "NXP LPC4357-DEV"
+	depends on ARCH_CHIP_LPC4357FET256
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		NXP Technologies LPC4357 DEV board.  This board is based on the
+		LPC4357FET256.
+
 config ARCH_BOARD_LPC4357_EVB
 	bool "NXP LPC4357-EVB"
 	depends on ARCH_CHIP_LPC4357FET256
@@ -1820,6 +1830,9 @@ source "configs/lpc4330-xplorer/Kconfig"
 endif
 if ARCH_BOARD_LPC4337_WS
 source "configs/lpc4337-ws/Kconfig"
+endif
+if ARCH_BOARD_LPC4357_DEV
+source "configs/lpc4357-dev/Kconfig"
 endif
 if ARCH_BOARD_LPC4357_EVB
 source "configs/lpc4357-evb/Kconfig"
