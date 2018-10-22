@@ -108,7 +108,7 @@
  * currently active task and the tail of this list, the lowest priority
  * task, is always the IDLE task.
  */
-
+/* 全局就绪任务链表 */
 volatile dq_queue_t g_readytorun;
 
 #ifdef CONFIG_SMP
@@ -150,16 +150,16 @@ volatile dq_queue_t g_assignedtasks[CONFIG_SMP_NCPUS];
  * currently active task at the head of the g_readytorun list, and (2) the
  * currently active task has disabled pre-emption.
  */
-
+/* 全局挂起等待任务链表 */
 volatile dq_queue_t g_pendingtasks;
 
 /* This is the list of all tasks that are blocked waiting for a semaphore */
-
+/* 全局信号量等待任务列表 */
 volatile dq_queue_t g_waitingforsemaphore;
 
 #ifndef CONFIG_DISABLE_SIGNALS
 /* This is the list of all tasks that are blocked waiting for a signal */
-
+/* 全局信号等待任务链表 */
 volatile dq_queue_t g_waitingforsignal;
 #endif
 
@@ -167,7 +167,7 @@ volatile dq_queue_t g_waitingforsignal;
 /* This is the list of all tasks that are blocked waiting for a message
  * queue to become non-empty.
  */
-
+/* 全局消息队列非空等待任务链表 */
 volatile dq_queue_t g_waitingformqnotempty;
 #endif
 
@@ -175,26 +175,26 @@ volatile dq_queue_t g_waitingformqnotempty;
 /* This is the list of all tasks that are blocked waiting for a message
  * queue to become non-full.
  */
-
+/* 全局消息队列非满等待任务链表 */
 volatile dq_queue_t g_waitingformqnotfull;
 #endif
 
 #ifdef CONFIG_PAGING
 /* This is the list of all tasks that are blocking waiting for a page fill */
-
+/* 全局页满等待任务链表 */
 volatile dq_queue_t g_waitingforfill;
 #endif
 
 #ifdef CONFIG_SIG_SIGSTOP_ACTION
 /* This is the list of all tasks that have been stopped via SIGSTOP or SIGSTP */
-
+/* 全局停止任务链表 */
 volatile dq_queue_t g_stoppedtasks;
 #endif
 
 /* This the list of all tasks that have been initialized, but not yet
  * activated. NOTE:  This is the only list that is not prioritized.
  */
-
+/* 全局未激活任务链表 */
 volatile dq_queue_t g_inactivetasks;
 
 #if (defined(CONFIG_BUILD_PROTECTED) || defined(CONFIG_BUILD_KERNEL)) && \
@@ -382,7 +382,7 @@ static FAR char *g_idleargv[1][2];
  *   Does not return.
  *
  ****************************************************************************/
-
+/* NuttX OS 启动 */
 void os_start(void)
 {
 #ifdef CONFIG_SMP
@@ -395,28 +395,37 @@ void os_start(void)
   sinfo("Entry\n");
 
   /* Boot up is complete */
-
+  /* 系统状态设置为Boot */
   g_os_initstate = OSINIT_BOOT;
 
   /* Initialize RTOS Data ***************************************************/
   /* Initialize all task lists */
 
+  /* 初始化就绪任务链表 */
   dq_init(&g_readytorun);
+  /* 初始化挂起等待任务链表 */
   dq_init(&g_pendingtasks);
+  /* 初始化信号量等待任务链表 */
   dq_init(&g_waitingforsemaphore);
 #ifndef CONFIG_DISABLE_SIGNALS
+  /* 初始化信号等待任务链表 */
   dq_init(&g_waitingforsignal);
 #endif
 #ifndef CONFIG_DISABLE_MQUEUE
+  /* 初始化消息队列非满等待任务链表 */
   dq_init(&g_waitingformqnotfull);
+  /* 初始化消息队列非空等待任务链表 */
   dq_init(&g_waitingformqnotempty);
 #endif
 #ifdef CONFIG_PAGING
+  /* 初始化页满等待任务链表 */
   dq_init(&g_waitingforfill);
 #endif
 #ifdef CONFIG_SIG_SIGSTOP_ACTION
+  /* 初始化停止任务链表 */
   dq_init(&g_stoppedtasks);
 #endif
+  /* 初始化未激活任务链表 */
   dq_init(&g_inactivetasks);
 #if (defined(CONFIG_BUILD_PROTECTED) || defined(CONFIG_BUILD_KERNEL)) && \
      defined(CONFIG_MM_KERNEL_HEAP)
@@ -561,6 +570,7 @@ void os_start(void)
   /* Initialize RTOS facilities *********************************************/
   /* Initialize the semaphore facility.  This has to be done very early
    * because many subsystems depend upon fully functional semaphores.
+   * 初始化信号量
    */
 
   nxsem_initialize();
@@ -609,11 +619,13 @@ void os_start(void)
 
 #if defined(CONFIG_SCHED_HAVE_PARENT) && defined(CONFIG_SCHED_CHILD_STATUS)
   /* Initialize tasking data structures */
+ /* 初始化任务数据结构 */
 
 #ifdef CONFIG_HAVE_WEAKFUNCTIONS
   if (task_initialize != NULL)
 #endif
     {
+      /* 任务初始化 */
       task_initialize();
     }
 #endif
@@ -624,6 +636,7 @@ void os_start(void)
   if (irq_initialize != NULL)
 #endif
     {
+      /* 中断处理初始化 */
       irq_initialize();
     }
 
@@ -633,6 +646,7 @@ void os_start(void)
   if (wd_initialize != NULL)
 #endif
     {
+      /* 看门狗初始化 */
       wd_initialize();
     }
 
@@ -642,6 +656,7 @@ void os_start(void)
   if (clock_initialize != NULL)
 #endif
     {
+      /* 时钟初始化 */
       clock_initialize();
     }
 
@@ -650,6 +665,7 @@ void os_start(void)
   if (timer_initialize != NULL)
 #endif
     {
+      /* 定时器初始化 */
       timer_initialize();
     }
 #endif
@@ -661,6 +677,7 @@ void os_start(void)
   if (nxsig_initialize != NULL)
 #endif
     {
+      /* 信号初始化 */
       nxsig_initialize();
     }
 #endif
@@ -672,6 +689,7 @@ void os_start(void)
   if (nxmq_initialize != NULL)
 #endif
     {
+      /* 消息队列初始化 */
       nxmq_initialize();
     }
 #endif
@@ -683,13 +701,14 @@ void os_start(void)
   if (pthread_initialize != NULL)
 #endif
     {
+      /* pthread初始化 */
       pthread_initialize();
     }
 #endif
 
 #if CONFIG_NFILE_DESCRIPTORS > 0
   /* Initialize the file system (needed to support device drivers) */
-
+  /* 文件系统初始化 */
   fs_initialize();
 #endif
 
@@ -701,7 +720,7 @@ void os_start(void)
    * cannot require upon any hardware-depending features such as
    * timers or interrupts.
    */
-
+  /* 网络建立 */
   net_setup();
 #endif
 
@@ -721,25 +740,25 @@ void os_start(void)
   /* Complete initialization the networking system now that interrupts
    * and timers have been configured by up_initialize().
    */
-
+  /* 网络初始化 */
   net_initialize();
 #endif
 
 #ifdef CONFIG_MM_SHM
   /* Initialize shared memory support */
-
+  /* 共享内存初始化 */
   shm_initialize();
 #endif
 
   /* Initialize the C libraries.  This is done last because the libraries
    * may depend on the above.
    */
-
+  /* C库初始化 */
   lib_initialize();
 
 #ifndef CONFIG_BINFMT_DISABLE
   /* Initialize the binfmt system */
-
+  /* binfmt系统初始化 */
   binfmt_initialize();
 #endif
 

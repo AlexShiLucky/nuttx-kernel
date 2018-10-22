@@ -263,7 +263,7 @@ static inline void lpc43_fpuconfig(void)
  *   This is the reset entry point.
  *
  ****************************************************************************/
-
+/* nuttx复位入口点 */
 void __start(void)
 {
   const uint32_t *src;
@@ -288,10 +288,14 @@ void __start(void)
 
   /* Configure the CGU clocking and the console uart so that we can get
    * debug output as soon as possible.
+   * 阶段A:主要配置系统时钟和初始化一个uart设备用于输出调试信息
    */
 
+  /* LPC43xx时钟配置 */
   lpc43_clockconfig();
+  /* LPC43xx低级设置,主要设置一个Uart,用于调试输出 */
   lpc43_lowsetup();
+  /* 调试输出A阶段调试信息'A' */
   showprogress('A');
 
   /* If we are executing from external FLASH, then enable buffering */
@@ -300,36 +304,44 @@ void __start(void)
 
   /* Clear .bss.  We'll do this inline (vs. calling memset) just to be
    * certain that there are no issues with the state of global variables.
+   * 阶段B:清除.bss段,其中_sbss和_ebss是连接脚本中导出的符号
    */
 
   for (dest = &_sbss; dest < &_ebss; )
     {
       *dest++ = 0;
     }
+  /* 调试输出B阶段调试信息'B' */
   showprogress('B');
 
   /* Move the initialized data section from his temporary holding spot in
    * FLASH into the correct place in SRAM.  The correct place in SRAM is
    * give by _sdata and _edata.  The temporary location is in FLASH at the
    * end of all of the other read-only data (.text, .rodata) at _eronly.
+   * 阶段C:将初始化.data段
    */
 
   for (src = &_eronly, dest = &_sdata; dest < &_edata; )
     {
       *dest++ = *src++;
     }
+  /* 调试输出C阶段调试信息'C' */
   showprogress('C');
 
   /* Initialize the FPU (if configured) */
+  /* 初始化FPU */
 
   lpc43_fpuconfig();
+  /* 调试输出D阶段调试信息'D' */
   showprogress('D');
 
   /* Perform early serial initialization */
+  /* 早期串口初始化 */
 
 #ifdef USE_EARLYSERIALINIT
   up_earlyserialinit();
 #endif
+  /* 调试输出E阶段调试信息'E' */
   showprogress('E');
 
   /* For the case of the separate user-/kernel-space build, perform whatever
@@ -339,19 +351,24 @@ void __start(void)
    */
 
 #ifdef CONFIG_BUILD_PROTECTED
+  /* 用户空间初始化 */
   lpc43_userspace();
+  /* 调试输出F阶段调试信息'F' */
   showprogress('F');
 #endif
 
   /* Initialize onboard resources */
+  /* 板上资源初始化 */
 
   lpc43_boardinitialize();
+  /* 调试输出G阶段调试信息'G' */
   showprogress('G');
 
   /* Then start NuttX */
 
   showprogress('\r');
   showprogress('\n');
+  /* 启动NuttX OS */
   os_start();
 
   /* Shouldn't get here */
