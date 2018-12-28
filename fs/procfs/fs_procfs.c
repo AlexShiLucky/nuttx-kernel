@@ -82,6 +82,7 @@ extern const struct procfs_operations cpuload_operations;
 extern const struct procfs_operations meminfo_operations;
 extern const struct procfs_operations module_operations;
 extern const struct procfs_operations uptime_operations;
+extern const struct procfs_operations version_operations;
 
 /* This is not good.  These are implemented in other sub-systems.  Having to
  * deal with them here is not a good coupling. What is really needed is a
@@ -91,7 +92,6 @@ extern const struct procfs_operations uptime_operations;
 
 extern const struct procfs_operations net_procfsoperations;
 extern const struct procfs_operations net_procfs_routeoperations;
-extern const struct procfs_operations mtd_procfsoperations;
 extern const struct procfs_operations part_procfsoperations;
 extern const struct procfs_operations mount_procfsoperations;
 extern const struct procfs_operations smartfs_procfsoperations;
@@ -153,10 +153,6 @@ static const struct procfs_entry_s g_procfs_entries[] =
   { "fs/smartfs**",  &smartfs_procfsoperations,   PROCFS_UNKOWN_TYPE },
 #endif
 
-#if defined(CONFIG_MTD) && !defined(CONFIG_FS_PROCFS_EXCLUDE_MTD)
-  { "mtd",           &mtd_procfsoperations,       PROCFS_FILE_TYPE   },
-#endif
-
 #if defined(CONFIG_NET) && !defined(CONFIG_FS_PROCFS_EXCLUDE_NET)
   { "net",           &net_procfsoperations,       PROCFS_DIR_TYPE    },
 #if defined(CONFIG_NET_ROUTE) && !defined(CONFIG_FS_PROCFS_EXCLUDE_ROUTE)
@@ -177,6 +173,10 @@ static const struct procfs_entry_s g_procfs_entries[] =
 
 #if !defined(CONFIG_FS_PROCFS_EXCLUDE_UPTIME)
   { "uptime",        &uptime_operations,          PROCFS_FILE_TYPE   },
+#endif
+
+#if !defined(CONFIG_FS_PROCFS_EXCLUDE_VERSION)
+  { "version",       &version_operations,         PROCFS_FILE_TYPE   },
 #endif
 };
 

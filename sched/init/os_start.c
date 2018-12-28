@@ -68,9 +68,6 @@
 #ifndef CONFIG_DISABLE_PTHREAD
 #  include "pthread/pthread.h"
 #endif
-#ifdef CONFIG_SCHED_WORKQUEUE
-#  include "wqueue/wqueue.h"
-#endif
 #include "clock/clock.h"
 #include "timer/timer.h"
 #include "irq/irq.h"
@@ -713,15 +710,9 @@ void os_start(void)
 #endif
 
 #ifdef CONFIG_NET
-  /* Initialize the networking system.  Network initialization is
-   * performed in two steps:  (1) net_setup() initializes static
-   * configuration of the network support.  This must be done prior
-   * to registering network drivers by up_initialize().  This step
-   * cannot require upon any hardware-depending features such as
-   * timers or interrupts.
-   */
+  /* Initialize the networking system */
   /* 网络建立 */
-  net_setup();
+  net_initialize();
 #endif
 
   /* The processor specific details of running the operating system
@@ -735,14 +726,6 @@ void os_start(void)
   /* Hardware resources are available */
 
   g_os_initstate = OSINIT_HARDWARE;
-
-#ifdef CONFIG_NET
-  /* Complete initialization the networking system now that interrupts
-   * and timers have been configured by up_initialize().
-   */
-  /* 网络初始化 */
-  net_initialize();
-#endif
 
 #ifdef CONFIG_MM_SHM
   /* Initialize shared memory support */

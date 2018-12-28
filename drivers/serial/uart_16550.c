@@ -713,6 +713,8 @@ static int u16550_setup(FAR struct uart_dev_s *dev)
       mcr &= ~UART_MCR_AFCE;
     }
 
+  mcr |= UART_MCR_RTS;
+
   u16550_serialout(priv, UART_MCR_OFFSET, mcr);
 #endif /* defined(CONFIG_SERIAL_IFLOWCONTROL) || defined(CONFIG_SERIAL_OFLOWCONTROL) */
 
@@ -1291,21 +1293,6 @@ static void u16550_putc(FAR struct u16550_s *priv, int ch)
 
 void up_earlyserialinit(void)
 {
-  /* Configure all UARTs (except the CONSOLE UART) and disable interrupts */
-
-#ifdef CONFIG_16550_UART0
-  u16550_disableuartint(&g_uart0priv, NULL);
-#endif
-#ifdef CONFIG_16550_UART1
-  u16550_disableuartint(&g_uart1priv, NULL);
-#endif
-#ifdef CONFIG_16550_UART2
-  u16550_disableuartint(&g_uart2priv, NULL);
-#endif
-#ifdef CONFIG_16550_UART3
-  u16550_disableuartint(&g_uart3priv, NULL);
-#endif
-
   /* Configuration whichever one is the console */
 
 #ifdef CONSOLE_DEV

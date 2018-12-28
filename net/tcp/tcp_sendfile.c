@@ -309,7 +309,7 @@ static inline bool sendfile_addrcheck(FAR struct tcp_conn_s *conn)
 #endif
     {
 #if !defined(CONFIG_NET_ICMPv6_NEIGHBOR)
-      return (neighbor_findentry(conn->u.ipv6.raddr) != NULL);
+      return (neighbor_lookup(conn->u.ipv6.raddr, NULL) >= 0);
 #else
       return true;
 #endif
@@ -662,7 +662,7 @@ ssize_t tcp_sendfile(FAR struct socket *psock, FAR struct file *infile,
   if (state.snd_datacb == NULL)
     {
       nerr("ERROR: Failed to allocate data callback\n");
-      ret =- ENOMEM;
+      ret = -ENOMEM;
       goto errout_locked;
     }
 
@@ -725,8 +725,6 @@ errout_locked:
 
   nxsem_destroy(&state. snd_sem);
   net_unlock();
-
-errout:
 
   if (ret < 0)
     {

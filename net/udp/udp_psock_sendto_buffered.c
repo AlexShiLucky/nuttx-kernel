@@ -294,7 +294,7 @@ static inline bool sendto_addrcheck(FAR struct udp_conn_s *conn,
 #endif
     {
 #if !defined(CONFIG_NET_ICMPv6_NEIGHBOR)
-      return (neighbor_findentry(conn->u.ipv6.raddr) != NULL);
+      return (neighbor_lookup(conn->u.ipv6.raddr, NULL) >= 0);
 #else
       return true;
 #endif
@@ -389,16 +389,16 @@ static int sendto_next_transfer(FAR struct socket *psock,
       return ret;
     }
 
- /* Get the device that will handle the remote packet transfers.  This
-  * should never be NULL.
-  */
+  /* Get the device that will handle the remote packet transfers.  This
+   * should never be NULL.
+   */
 
- dev = udp_find_raddr_device(conn);
- if (dev == NULL)
-   {
-     nerr("ERROR: udp_find_raddr_device failed\n");
-     return -ENETUNREACH;
-   }
+  dev = udp_find_raddr_device(conn);
+  if (dev == NULL)
+    {
+      nerr("ERROR: udp_find_raddr_device failed\n");
+      return -ENETUNREACH;
+    }
 
   /* Make sure that the device is in the UP state */
 
@@ -508,9 +508,10 @@ static uint16_t sendto_eventhandler(FAR struct net_driver_s *dev,
   if (dev->d_sndlen <= 0 && (flags & UDP_NEWDATA) == 0 &&
       (flags & UDP_POLL) != 0 && !sq_empty(&conn->write_q))
     {
-      /* Check if the destination IP address is in the ARP  or Neighbor
-       * table.  If not, then the send won't actually make it out... it
-       * will be replaced with an ARP request or Neighbor Solicitation.
+      /* Check if the destination IP address is in the ARP, Neighbor
+       * table, or routing table.  If not, then the send won't actually
+       * make it out... it will be replaced with an ARP request or
+       * Neighbor Solicitation.
        */
 
       if (sendto_addrcheck(conn, dev))

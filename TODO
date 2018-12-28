@@ -1,4 +1,4 @@
-NuttX TODO List (Last updated October 6, 2018)
+NuttX TODO List (Last updated November 10, 2018)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This file summarizes known NuttX bugs, limitations, inconsistencies with
@@ -44,7 +44,17 @@ o Task/Scheduler (sched/)
   Title:       CHILD PTHREAD TERMINATION
   Description: When a tasks exits, shouldn't all of its child pthreads also be
                terminated?
-  Status:      Closed.  No, this behavior will not be implemented.
+
+               This behavior was implemented as an options controlled by the
+               configuration setting CONFIG_SCHED_EXIT_KILL_CHILDREN.  This
+               option must be used with caution, however.  It  should not be
+               used unless you are certain of what you are doing.  Uninformed
+               of this option can often lead to memory leaks since, for
+               example, memory allocations held by threads are not
+               automatically freed!
+
+  Status:      Closed.  No, this behavior will not be implemented unless
+               specifically selected.
   Priority:    Medium, required for good emulation of process/pthread model.
                The current behavior allows for the main thread of a task to
                exit() and any child pthreads will persist.  That does raise
@@ -1130,18 +1140,40 @@ o Network (net/, drivers/net)
   Status:      Open
   Priority:    Low
 
-  Title:       CONCURRENT TCP SEND OPERATIONS
+  Title:       CONCURRENT, UNBUFFERED TCP SEND OPERATIONS
   Description: At present, there cannot be two concurrent active TCP send
-               operations in progress using the same socket.  This is because
-               the uIP ACK logic will support only one transfer at a time.  The
-               solution is simple: A mutex will be needed to make sure that each
-               send that is started is able to be the exclusive sender until all of
-               the data to be sent has been ACKed.
-  Status:      Open.  There is some temporary logic to apps/nshlib that does
-               this same fix and that temporary logic should be removed when
-               send() is fixed.
-  Priority:    Medium-Low.  This is an important issue for applications that
-               send on the same TCP socket from multiple threads.
+               operations in progress using the same socket *unless*
+               CONFIG_TCP_WRITE_BUFFER.  This is because the uIP ACK logic
+               will support only one transfer at a time.
+
+               Such a situation could occur if explicit TCP send operations
+               are performed using the same socket (or dup's of the same)
+               socket on two different threads.  It can also occur implicitly
+               when you execute more than one thread over and NSH Telenet
+               session.
+
+               There are two possible solutions:
+
+               1. Remove option to build the network without write buffering
+                  enabled.  This is is simplest and perhaps the best option.
+                  Certainly a system can be produced with a smaller RAM
+                  footprint without write buffering.  However, that probably
+                  does not justify permitted a crippled system.
+
+               2. Another option is to serialize the non-buffered writes for
+                  a socket with a mutex. i.e., add a mutex to make sure that
+                  each send that is started is able to be the exclusive
+                  sender until all of the data to be sent has been ACKed.
+                  That can be a very significant delay involving the send,
+                  waiting for the ACK or a timeout and possible retransmissions!
+
+                Although it uses more memory, I believe that option 1 is the
+                better solution and will avoid difficult TCP bugs in the future.
+
+  Status:      Open.
+  Priority:    Medium-Low.  This is only an important issue for people who
+               use multi-threaded, unbuffered TCP networking without a full
+               understanding of the issues.
 
   Title:       POLL/SELECT ON TCP/UDP SOCKETS NEEDS READ-AHEAD
   Description: poll()/select() only works for availability of buffered TCP/UDP

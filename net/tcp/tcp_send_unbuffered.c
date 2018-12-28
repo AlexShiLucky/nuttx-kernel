@@ -301,9 +301,9 @@ static inline bool psock_send_addrchck(FAR struct tcp_conn_s *conn)
 #endif
 
 #if !defined(CONFIG_NET_ICMPv6_NEIGHBOR)
-      if (neighbor_findentry(conn->u.ipv6.raddr) != NULL)
+      if (neighbor_lookup(conn->u.ipv6.raddr, NULL) >= 0)
         {
-          /* Return true if the address was found in the ARP table */
+          /* Return true if the address was found in the neighbor table */
 
           return true;
         }
@@ -825,7 +825,6 @@ ssize_t psock_tcp_send(FAR struct socket *psock,
       ret = arp_send(conn->u.ipv4.raddr);
     }
 #endif /* CONFIG_NET_ARP_SEND */
-
 
 #ifdef CONFIG_NET_ICMPv6_NEIGHBOR
 #ifdef CONFIG_NET_ARP_SEND

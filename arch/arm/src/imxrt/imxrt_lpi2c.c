@@ -409,8 +409,8 @@ static const struct imxrt_lpi2c_config_s imxrt_lpi2c4_config =
   .busy_idle  = CONFIG_LPI2C4_BUSYIDLE,
   .filtscl    = CONFIG_LPI2C4_FILTSCL,
   .filtsda    = CONFIG_LPI2C4_FILTSDA,
-  .scl_pin    = GPIO_LPI2C3_SCL,
-  .sda_pin    = GPIO_LPI2C3_SDA,
+  .scl_pin    = GPIO_LPI2C4_SCL,
+  .sda_pin    = GPIO_LPI2C4_SDA,
 #ifndef CONFIG_I2C_SLAVE
   .mode       = LPI2C_MASTER,
 #else

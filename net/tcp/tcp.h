@@ -326,6 +326,7 @@ EXTERN struct net_driver_s *g_netdevices;
  * Public Function Prototypes
  ****************************************************************************/
 
+struct file;      /* Forward reference */
 struct sockaddr;  /* Forward reference */
 struct socket;    /* Forward reference */
 struct pollfd;    /* Forward reference */
@@ -1030,7 +1031,10 @@ void tcp_ipv4_input(FAR struct net_driver_s *dev);
  *   Handle incoming TCP input with IPv4 header
  *
  * Input Parameters:
- *   dev - The device driver structure containing the received TCP packet.
+ *   dev   - The device driver structure containing the received TCP packet.
+ *   iplen - The size of the IPv6 header.  This may be larger than
+ *           IPv6_HDRLEN the IPv6 header if IPv6 extension headers are
+ *           present.
  *
  * Returned Value:
  *   None
@@ -1041,7 +1045,7 @@ void tcp_ipv4_input(FAR struct net_driver_s *dev);
  ****************************************************************************/
 
 #ifdef CONFIG_NET_IPv6
-void tcp_ipv6_input(FAR struct net_driver_s *dev);
+void tcp_ipv6_input(FAR struct net_driver_s *dev, unsigned int iplen);
 #endif
 
 /****************************************************************************

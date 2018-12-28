@@ -71,6 +71,14 @@
 #endif
 
 /****************************************************************************
+ * Private Data
+ ****************************************************************************/
+
+#ifdef CONFIG_ARCH_STACKDUMP
+static uint32_t s_last_regs[XCPTCONTEXT_REGS];
+#endif
+
+/****************************************************************************
  * Private Functions
  ****************************************************************************/
 
@@ -136,6 +144,20 @@ static void up_dumpstate(void)
   uint32_t istacksize;
 #endif
 
+  /* Dump the registers (if available) */
+
+  if (g_current_regs != NULL)
+    {
+      up_registerdump((uint32_t*)g_current_regs);
+    }
+  else
+    {
+      /* Capture and dump user registers by hand */
+
+      up_saveusercontext(s_last_regs);
+      up_registerdump(s_last_regs);
+    }
+
   /* Get the limits on the user stack memory */
 
   if (rtcb->pid == 0)
@@ -179,6 +201,11 @@ static void up_dumpstate(void)
       sp = g_intstackbase;
       _alert("sp:     %08x\n", sp);
     }
+  else if (g_current_regs)
+    {
+      _alert("ERROR: Stack pointer is not within the interrupt stack\n");
+      up_stackdump(istackbase - istacksize, istackbase);
+    }
 
   /* Show user stack info */
 
@@ -197,20 +224,12 @@ static void up_dumpstate(void)
 
   if (sp > ustackbase || sp <= ustackbase - ustacksize)
     {
-#if !defined(CONFIG_ARCH_INTERRUPTSTACK) || CONFIG_ARCH_INTERRUPTSTACK < 4
       _alert("ERROR: Stack pointer is not within allocated stack\n");
-#endif
+      up_stackdump(ustackbase - ustacksize, ustackbase);
     }
   else
     {
       up_stackdump(sp, ustackbase);
-    }
-
-  /* Then dump the registers (if available) */
-
-  if (g_current_regs != NULL)
-    {
-      up_registerdump((uint32_t*)g_current_regs);
     }
 
 #ifdef CONFIG_ARCH_USBDUMP
@@ -242,7 +261,7 @@ static void _up_assert(int errorcode)
         for (;;)
           {
 #if CONFIG_BOARD_RESET_ON_ASSERT >= 1
-            board_reset(0);
+            board_reset(CONFIG_BOARD_ASSERT_RESET_VALUE);
 #endif
 #ifdef CONFIG_ARCH_LEDS
             board_autoled_on(LED_PANIC);
@@ -255,7 +274,7 @@ static void _up_assert(int errorcode)
   else
     {
 #if CONFIG_BOARD_RESET_ON_ASSERT >= 2
-      board_reset(0);
+      board_reset(CONFIG_BOARD_ASSERT_RESET_VALUE);
 #endif
       exit(errorcode);
     }

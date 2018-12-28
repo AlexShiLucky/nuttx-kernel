@@ -114,12 +114,12 @@ struct syslog_channel_s
 {
   /* I/O redirection methods */
 
-#ifdef CONFIG_SYSLOG_WRITE
-  syslog_write_t sc_write;  /* Write multiple bytes */
-#endif
   syslog_putc_t  sc_putc;   /* Normal buffered output */
   syslog_putc_t  sc_force;  /* Low-level output for interrupt handlers */
   syslog_flush_t sc_flush;  /* Flush buffered output (on crash) */
+#ifdef CONFIG_SYSLOG_WRITE
+  syslog_write_t sc_write;  /* Write multiple bytes */
+#endif
 
   /* Implementation specific logic may follow */
 };
@@ -276,24 +276,6 @@ int syslog_flush(void);
  ****************************************************************************/
 
 int nx_vsyslog(int priority, FAR const IPTR char *src, FAR va_list *ap);
-
-/****************************************************************************
- * Name: syslog_register
- *
- * Description:
- *   Register a simple character driver at /dev/syslog whose write() method
- *   will transfer data to the SYSLOG device.  This can be useful if, for
- *   example, you want to redirect the output of a program to the SYSLOG.
- *
- *   NOTE that unlike other syslog output, this data is unformatted raw
- *   byte output with no time-stamping or any other SYSLOG features
- *   supported.
- *
- ****************************************************************************/
-
-#ifdef CONFIG_SYSLOG_CHARDEV
-void syslog_register(void);
-#endif
 
 #undef EXTERN
 #ifdef __cplusplus

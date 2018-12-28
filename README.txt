@@ -341,7 +341,7 @@ Ubuntu Bash under Windows 10
   for the needs of your project.
 
   You will also need to get the kconfig-frontends configuration as
-  described below under "NuttX Configuration tool".  In order to build the
+  described below under "NuttX Configuration Tool".  In order to build the
   kconfig-frontends configuration tool you will also need:  make, gperf,
   flex, bison, and libncurses-dev.
 
@@ -1790,6 +1790,8 @@ nuttx/
  |   |- freedom-kl25z/
  |   |   `- README.txt
  |   |- freedom-kl26z/
+ |   |   `- README.txt
+ |   |- gapuino/
  |   |   `- README.txt
  |   |- hymini-stm32v/
  |   |   `- README.txt

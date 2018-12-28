@@ -96,16 +96,14 @@ static FAR struct net_driver_s *upd_bound_device(FAR struct udp_conn_s *conn)
         }
     }
 
-  /* REVISIT:  If no device was bound or the bound device is no longer valid,
-   * then just return the arbitrary device at the head of the list of
-   * registered devices.  This is lunacy if there are multiple, registered
-   * network devices but makes perfectly good since if there is only one.
+  /* If no device was bound or the bound device is no longer valid,
+   * then let's try the default network device.
    */
 
-  return dev == NULL ? g_netdevices : dev;
+  return dev == NULL ? netdev_default() : dev;
 }
 #else
-#  define upd_bound_device(c) g_netdevices
+#  define upd_bound_device(c) netdev_default();
 #endif
 
 
@@ -154,8 +152,8 @@ FAR struct net_driver_s *udp_find_laddr_device(FAR struct udp_conn_s *conn)
             }
           else
             {
-              return netdev_findby_ipv4addr(conn->u.ipv4.laddr,
-                                            conn->u.ipv4.laddr);
+              return netdev_findby_ripv4addr(conn->u.ipv4.laddr,
+                                             conn->u.ipv4.laddr);
             }
         }
 #endif
@@ -177,8 +175,8 @@ FAR struct net_driver_s *udp_find_laddr_device(FAR struct udp_conn_s *conn)
             }
           else
             {
-              return netdev_findby_ipv6addr(conn->u.ipv6.laddr,
-                                            conn->u.ipv6.laddr);
+              return netdev_findby_ripv6addr(conn->u.ipv6.laddr,
+                                             conn->u.ipv6.laddr);
             }
         }
 #endif
@@ -234,8 +232,8 @@ FAR struct net_driver_s *udp_find_raddr_device(FAR struct udp_conn_s *conn)
                 }
               else
                 {
-                  return netdev_findby_ipv4addr(conn->u.ipv4.laddr,
-                                                conn->u.ipv4.laddr);
+                  return netdev_findby_ripv4addr(conn->u.ipv4.laddr,
+                                                 conn->u.ipv4.laddr);
                 }
             }
 
@@ -247,8 +245,8 @@ FAR struct net_driver_s *udp_find_raddr_device(FAR struct udp_conn_s *conn)
             {
               /* Normal lookup using the verified remote address */
 
-              return netdev_findby_ipv4addr(conn->u.ipv4.laddr,
-                                            conn->u.ipv4.raddr);
+              return netdev_findby_ripv4addr(conn->u.ipv4.laddr,
+                                             conn->u.ipv4.raddr);
             }
           else
             {
@@ -286,8 +284,8 @@ FAR struct net_driver_s *udp_find_raddr_device(FAR struct udp_conn_s *conn)
                 }
               else
                 {
-                  return netdev_findby_ipv6addr(conn->u.ipv6.laddr,
-                                                conn->u.ipv6.laddr);
+                  return netdev_findby_ripv6addr(conn->u.ipv6.laddr,
+                                                 conn->u.ipv6.laddr);
                 }
             }
 
@@ -299,8 +297,8 @@ FAR struct net_driver_s *udp_find_raddr_device(FAR struct udp_conn_s *conn)
             {
               /* Normal lookup using the verified remote address */
 
-              return netdev_findby_ipv6addr(conn->u.ipv6.laddr,
-                                            conn->u.ipv6.raddr);
+              return netdev_findby_ripv6addr(conn->u.ipv6.laddr,
+                                             conn->u.ipv6.raddr);
             }
           else
             {

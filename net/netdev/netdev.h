@@ -1,7 +1,7 @@
 /****************************************************************************
  * net/netdev/netdev.h
  *
- *   Copyright (C) 2014-2015 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2014-2015, 2018 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -178,49 +178,94 @@ FAR struct net_driver_s *netdev_findbyname(FAR const char *ifname);
 
 int netdev_foreach(netdev_callback_t callback, FAR void *arg);
 
+#if CONFIG_NSOCKET_DESCRIPTORS > 0
+
 /****************************************************************************
- * Name: netdev_findby_ipv4addr
+ * Name: netdev_findby_lipv4addr
  *
  * Description:
- *   Find a previously registered network device by matching an arbitrary
- *   IPv4 address.
+ *   Find a previously registered network device by matching a local address
+ *   with the subnet served by the device.  Only "up" devices are considered
+ *   (since a "down" device has no meaningful address).
  *
  * Input Parameters:
- *   lipaddr - Local, bound address of a connection.
- *   ripaddr - Remote address of a connection to use in the lookup
+ *   lipaddr - Local, IPv4 address assigned to the network device.  Or any
+ *             IPv4 address on the sub-net served by the network device.
  *
  * Returned Value:
- *  Pointer to driver on success; null on failure
+ *   Pointer to driver on success; null on failure
  *
  ****************************************************************************/
 
-#if CONFIG_NSOCKET_DESCRIPTORS > 0
 #ifdef CONFIG_NET_IPv4
-FAR struct net_driver_s *netdev_findby_ipv4addr(in_addr_t lipaddr,
-                                                in_addr_t ripaddr);
+FAR struct net_driver_s *netdev_findby_lipv4addr(in_addr_t lipaddr);
 #endif
 
 /****************************************************************************
- * Name: netdev_findby_ipv6addr
+ * Name: netdev_findby_lipv6addr
  *
  * Description:
- *   Find a previously registered network device by matching an arbitrary
- *   IPv6 address.
+ *   Find a previously registered network device by matching a local address
+ *   with the subnet served by the device.  Only "up" devices are considered
+ *   (since a "down" device has no meaningful address).
  *
  * Input Parameters:
- *   lipaddr - Local, bound address of a connection.
- *   ripaddr - Remote address of a connection to use in the lookup
+ *   lipaddr - Local, IPv6 address assigned to the network device.  Or any
+ *             IPv6 address on the sub-net served by the network device.
  *
  * Returned Value:
- *  Pointer to driver on success; null on failure
+ *   Pointer to driver on success; null on failure
  *
  ****************************************************************************/
 
 #ifdef CONFIG_NET_IPv6
-FAR struct net_driver_s *netdev_findby_ipv6addr(const net_ipv6addr_t lipaddr,
-                                                const net_ipv6addr_t ripaddr);
+FAR struct net_driver_s *netdev_findby_lipv6addr(const net_ipv6addr_t lipaddr);
 #endif
+
+/****************************************************************************
+ * Name: netdev_findby_ripv4addr
+ *
+ * Description:
+ *   Find a previously registered network device by matching the remote
+ *   IPv4 address that can be reached by the device.
+ *
+ * Input Parameters:
+ *   lipaddr - Local, bound address of a connection (used only if ripaddr is
+ *             the broadcast address).
+ *   ripaddr - Remote address of a connection to use in the lookup
+ *
+ * Returned Value:
+ *   Pointer to driver on success; null on failure
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_NET_IPv4
+FAR struct net_driver_s *netdev_findby_ripv4addr(in_addr_t lipaddr,
+                                                 in_addr_t ripaddr);
 #endif
+
+/****************************************************************************
+ * Name: netdev_findby_ripv6addr
+ *
+ * Description:
+ *   Find a previously registered network device by matching the remote
+ *   IPv6 address that can be reached by the device.
+ *
+ * Input Parameters:
+ *   lipaddr - Local, bound address of a connection (used only if ripaddr is
+ *             a multicast address).
+ *   ripaddr - Remote address of a connection to use in the lookup
+ *
+ * Returned Value:
+ *   Pointer to driver on success; null on failure
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_NET_IPv6
+FAR struct net_driver_s *netdev_findby_ripv6addr(const net_ipv6addr_t lipaddr,
+                                                 const net_ipv6addr_t ripaddr);
+#endif
+#endif /* CONFIG_NSOCKET_DESCRIPTORS > 0 */
 
 /****************************************************************************
  * Name: netdev_findbyindex
@@ -410,7 +455,7 @@ int netdev_count(void);
  * Name: netdev_ipv4_ifconf
  *
  * Description:
- *   Return the IPv4 configuration of each network adaptor
+ *   Return the IPv4 configuration of each network adapter
  *
  * Input Parameters:
  *   ifc - A reference to the instance of struct ifconf in which to return
@@ -434,7 +479,7 @@ int netdev_ipv4_ifconf(FAR struct ifconf *ifc);
  * Name: netdev_ipv6_ifconf
  *
  * Description:
- *   Return the IPv6 configuration of each network adaptor
+ *   Return the IPv6 configuration of each network adapter
  *
  * Input Parameters:
  *   lifc - A reference to the instance of struct lifconf in which to return
@@ -453,22 +498,6 @@ int netdev_ipv4_ifconf(FAR struct ifconf *ifc);
 struct lifconf;  /* Forward reference */
 int netdev_ipv6_ifconf(FAR struct lifconf *lifc);
 #endif
-
-/****************************************************************************
- * Name: netdev_dev_lladdrsize
- *
- * Description:
- *   Returns the size of the MAC address associated with a network device.
- *
- * Input Parameters:
- *   dev - A reference to the device of interest
- *
- * Returned Value:
- *   The size of the MAC address associated with this device
- *
- ****************************************************************************/
-
-int netdev_dev_lladdrsize(FAR struct net_driver_s *dev);
 
 /****************************************************************************
  * Name: netdown_notifier_setup

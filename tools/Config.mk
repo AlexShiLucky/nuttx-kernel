@@ -38,6 +38,10 @@
 #
 ############################################################################
 
+ifeq ($(CONFIG_WINDOWS_NATIVE),y)
+export SHELL=cmd
+endif
+
 # These are configuration variables that are quoted by configuration tool
 # but which must be unquoated when used in the build system.
 
@@ -265,6 +269,18 @@ endef
 else
 define MOVEFILE
 	$(Q) mv -f $1 $2
+endef
+endif
+
+# COPYFILE - Copy one file
+
+ifeq ($(CONFIG_WINDOWS_NATIVE),y)
+define COPYFILE
+	$(Q) if exist $1 (copy /y /b $1 $2)
+endef
+else
+define COPYFILE
+	$(Q) cp -f $1 $2
 endef
 endif
 

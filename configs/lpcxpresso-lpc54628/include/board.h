@@ -203,7 +203,7 @@
  *   Fsdmmc = Fmck / SYSDIV
  *   Fsd    = Fsdmmc / SDDIV
  *
- * The optimal SYSCON divisor (SYSDIV) is the smallest smallest that will
+ * The optimal SYSCON divisor (SYSDIV) is the smallest divisor that will
  * assure that the smallest usable SD frequency (Fmin = 400KHz) can be
  * attained without overflowing the final 8-bit divider (SDDIV).  That is:
  *
@@ -435,6 +435,15 @@
 #define GPIO_SD_CMD                GPIO_SD_CMD_3            /* P2.4 */
 #define GPIO_SD_POW_EN             GPIO_SD_POW_EN_2         /* P2.5 */
 #define GPIO_SD_WR_PRT             GPIO_SD_WR_PRT_2         /* P2.15 */
+
+/* REVISIT: Due to chip errata, Rev. 1.7, Issue 3.7, DAT4-7 must also be
+ * configured.  Otherwise the SD interface will not work.
+ */
+
+#define GPIO_SD_D4                 (GPIO_SD_D4_3 | GPIO_PULLUP) /* P4.29 */
+#define GPIO_SD_D5                 (GPIO_SD_D5_3 | GPIO_PULLUP) /* P4.30 */
+#define GPIO_SD_D6                 (GPIO_SD_D6_3 | GPIO_PULLUP) /* P4.31 */
+#define GPIO_SD_D7                 (GPIO_SD_D7_3 | GPIO_PULLUP) /* P5.0 */
 
 /* LCD
  *
