@@ -207,6 +207,8 @@ ifneq ($(CONFIG_WINDOWS_NATIVE),y)
 	$(Q) $(NM) $(NUTTX) | \
 	grep -v '\(compiled\)\|\(\$(OBJEXT)$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | \
 	sort > $(TOPDIR)$(DELIM)System.map
+	echo ""
+	$(Q) $(SIZE) $(NUTTX) >> $(TOPDIR)$(DELIM)System.map
 endif
 
 # This is part of the top-level export target
