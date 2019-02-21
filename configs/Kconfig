@@ -651,7 +651,7 @@ config ARCH_BOARD_OLIMEX_STRP711
 	select ARCH_HAVE_BUTTONS
 	---help---
 		This port uses the Olimex STR-P711 board and a GNU arm-nuttx-elf toolchain* under
-		Linux or Cygwin. See the http://www.olimex.com/dev/str-p711.html" for
+		Linux or Cygwin. See the "http://www.olimex.com/dev/str-p711.html" for
 		further information.  STATUS: Configurations for the basic OS test and NSH
 		are complete and verified.
 
@@ -1266,6 +1266,14 @@ config ARCH_BOARD_STM32_TINY
 		STM32F103C8T6 micro-controller chip, and is (always ?) bundled with
 		an nRF24L01+ wireless module.
 
+config ARCH_BOARD_STM32_TEST
+	bool "STM32-Test board"
+	depends on ARCH_CHIP_STM32F103RC
+	select ARCH_HAVE_LEDS
+	---help---
+		A configuration for the STM32 Tiny board. This board is based on a
+		STM32F103RC micro-controller chip.
+
 config ARCH_BOARD_STM32F103_MINIMUM
 	bool "STM32F103C8T6 Minimum ARM Development Board"
 	depends on ARCH_CHIP_STM32F103C8
@@ -1643,7 +1651,7 @@ config ARCH_BOARD_Z80SIM
 	---help---
 		z80 Microcontroller.  This port uses a Z80 instruction set simulator
 		called z80sim.  This port also uses the SDCC toolchain
-		(http://sdcc.sourceforge.net/") (verified with version 2.6.0).
+		("http://sdcc.sourceforge.net/") (verified with version 2.6.0).
 
 config ARCH_BOARD_Z8ENCORE000ZCO
 	bool "ZiLOG Z8ENCORE000ZCO Development Kit"
@@ -1878,6 +1886,7 @@ config ARCH_BOARD
 	default "photon"                   if ARCH_BOARD_PHOTON
 	default "stm32butterfly2"          if ARCH_BOARD_STM32_BUTTERFLY2
 	default "stm32_tiny"               if ARCH_BOARD_STM32_TINY
+	default "stm32_test"               if ARCH_BOARD_STM32_TEST
 	default "stm32f051-discovery"      if ARCH_BOARD_STM32F051_DISCOVERY
 	default "stm32f072-discovery"      if ARCH_BOARD_STM32F072_DISCOVERY
 	default "stm32f103-minimum"        if ARCH_BOARD_STM32F103_MINIMUM
@@ -2320,6 +2329,9 @@ source "configs/stm32butterfly2/Kconfig"
 endif
 if ARCH_BOARD_STM32_TINY
 source "configs/stm32_tiny/Kconfig"
+endif
+if ARCH_BOARD_STM32_TEST
+source "configs/stm32_test/Kconfig"
 endif
 if ARCH_BOARD_STM32F051_DISCOVERY
 source "configs/stm32f051-discovery/Kconfig"
