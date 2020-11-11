@@ -143,13 +143,20 @@ endif
 
 # This is the name of the final target (relative to the top level directory)
 
-NUTTXNAME = nuttx
-BIN       = $(NUTTXNAME)$(EXEEXT)
+NUTTXNAME   = nuttx
+BIN         = $(NUTTXNAME)$(EXEEXT)
+OBJDUMPFILE = $(NUTTXNAME).objdump
 
-all: $(BIN)
+BUILD_PRE_TARGET =
+BUILD_POST_TARGET = $(OBJDUMPFILE)
+
+all: $(BUILD_PRE_TARGET) $(BIN) $(BUILD_POST_TARGET)
 .PHONY: dirlinks context clean_context config oldconfig menuconfig nconfig qconfig gconfig export subdir_clean clean subdir_distclean distclean apps_clean apps_distclean
 .PHONY: pass1 pass1dep
 .PHONY: pass2 pass2dep
+
+$(OBJDUMPFILE): $(BIN)
+	$(Q) $(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
 
 # Target used to copy include/nuttx/lib/math.h.  If CONFIG_ARCH_MATH_H is
 # defined, then there is an architecture specific math.h header file
@@ -559,6 +566,7 @@ clean: subdir_clean
 	$(call DELFILE, $(BIN))
 	$(call DELFILE, nuttx.*)
 	$(call DELFILE, *.map)
+	$(call DELFILE, *.objdump)
 	$(call DELFILE, _SAVED_APPS_config)
 	$(call DELFILE, nuttx-export*.zip)
 	$(call DELDIR, nuttx-export*)

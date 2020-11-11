@@ -149,6 +149,7 @@ AR = $(CROSSDEV)ar rcs
 NM = $(CROSSDEV)nm
 OBJCOPY = $(CROSSDEV)objcopy
 OBJDUMP = $(CROSSDEV)objdump
+SIZE = $(CROSSDEV)size
 
 # Add the builtin library
 
