@@ -159,6 +159,7 @@ all: $(BUILD_PRE_TARGET) $(BIN) $(BUILD_POST_TARGET)
 
 $(OBJDUMPFILE): $(BIN)
 	$(Q) $(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
+	$(Q) echo $@ >> $(NUTTXNAME).manifest
 	
 .PHONY: $(SIZEFILE)
 $(SIZEFILE): $(BIN) $(MAPFILE)

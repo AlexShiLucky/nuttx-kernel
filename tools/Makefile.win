@@ -144,7 +144,8 @@ all: $(BUILD_PRE_TARGET) $(BIN) $(BUILD_POST_TARGET)
 
 $(OBJDUMPFILE): $(BIN)
 	$(Q) $(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
-	
+	$(Q) echo $@ >> $(NUTTXNAME).manifest
+
 .PHONY: $(SIZEFILE)
 $(SIZEFILE): $(BIN) $(MAPFILE)
 	$(Q) $(SIZE) --format=berkeley $< | tee -a $(MAPFILE)
@@ -521,6 +522,7 @@ clean: subdir_clean
 	$(call DELFILE, $(BIN))
 	$(call DELFILE, nuttx.*)
 	$(call DELFILE, *.map)
+	$(call DELFILE, *.objdump)
 	$(call DELFILE, _SAVED_APPS_config)
 	$(call DELFILE, nuttx-export*)
 	$(call DELFILE, nuttx_user*)
