@@ -66,11 +66,9 @@ AFLAGS += $(INCLUDES)
 ifeq ($(CONFIG_CYGWIN_WINTOOL),y)
   NUTTX = "${shell cygpath -w $(TOPDIR)$(DELIM)nuttx$(EXEEXT)}"
   LINKERMAP = "${shell cygpath -w $(TOPDIR)$(DELIM)nuttx.map}"
-  OBJDUMP = "${shell cygpath -w $(TOPDIR)$(DELIM)nuttx.objdump}"
 else
   NUTTX = "$(TOPDIR)$(DELIM)nuttx$(EXEEXT)"
   LINKERMAP = "$(TOPDIR)$(DELIM)nuttx.map"
-  OBJDUMP = "$(TOPDIR)$(DELIM)nuttx.objdump"
 endif
 
 # Additional rules for system call wrapper
@@ -177,7 +175,6 @@ nuttx$(EXEEXT): $(HEAD_OBJ) board$(DELIM)libboard$(LIBEXT)
 	$(Q) $(LD) --entry=__start $(LDFLAGS) $(LIBPATHS) $(EXTRA_LIBPATHS) \
 		-o $(NUTTX) $(HEAD_OBJ) $(EXTRA_OBJS) \
 		$(LDSTARTGROUP) $(LDLIBS) $(EXTRA_LIBS) $(LDENDGROUP)
-	$(Q) $(SIZE) $(NUTTX) | tee -a $(LINKERMAP)
 ifneq ($(CONFIG_WINDOWS_NATIVE),y)
 	$(Q) $(NM) $(NUTTX) | \
 	grep -v '\(compiled\)\|\(\$(OBJEXT)$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | \

@@ -145,10 +145,12 @@ endif
 
 NUTTXNAME   = nuttx
 BIN         = $(NUTTXNAME)$(EXEEXT)
+MAPFILE     = $(NUTTXNAME).map
 OBJDUMPFILE = $(NUTTXNAME).objdump
+SIZEFILE    = $(NUTTXNAME).size
 
 BUILD_PRE_TARGET =
-BUILD_POST_TARGET = $(OBJDUMPFILE)
+BUILD_POST_TARGET = $(OBJDUMPFILE) $(SIZEFILE)
 
 all: $(BUILD_PRE_TARGET) $(BIN) $(BUILD_POST_TARGET)
 .PHONY: dirlinks context clean_context config oldconfig menuconfig nconfig qconfig gconfig export subdir_clean clean subdir_distclean distclean apps_clean apps_distclean
@@ -157,6 +159,10 @@ all: $(BUILD_PRE_TARGET) $(BIN) $(BUILD_POST_TARGET)
 
 $(OBJDUMPFILE): $(BIN)
 	$(Q) $(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
+	
+.PHONY: $(SIZEFILE)
+$(SIZEFILE): $(BIN) $(MAPFILE)
+	$(Q) $(SIZE) --format=berkeley $< | tee -a $(MAPFILE)
 
 # Target used to copy include/nuttx/lib/math.h.  If CONFIG_ARCH_MATH_H is
 # defined, then there is an architecture specific math.h header file
