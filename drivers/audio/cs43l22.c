@@ -44,6 +44,7 @@
 #include <sys/ioctl.h>
 
 #include <math.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -1214,7 +1215,8 @@ static int cs43l22_start(FAR struct audio_lowerhalf_s *dev)
 
   /* Create a message queue for the worker thread */
 
-  snprintf(priv->mqname, sizeof(priv->mqname), "/tmp/%X", priv);
+  snprintf(priv->mqname, sizeof(priv->mqname), "/tmp/%" PRIXPTR,
+           (uintptr_t)priv);
 
   attr.mq_maxmsg  = 16;
   attr.mq_msgsize = sizeof(struct audio_msg_s);
@@ -2008,7 +2010,7 @@ FAR struct audio_lowerhalf_s *
 
       /* Initialize I2C */
 
-      audinfo("address=%02x frequency=%d\n",
+      audinfo("address=%02x frequency=%" PRId32 "\n",
               lower->address, lower->frequency);
 
       /* Software reset.  This puts all CS43L22 registers back in their

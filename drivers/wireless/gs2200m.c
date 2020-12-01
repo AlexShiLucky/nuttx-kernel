@@ -49,6 +49,7 @@
 #include <nuttx/config.h>
 
 #include <sys/types.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -1629,8 +1630,9 @@ static enum pkt_type_e gs2200m_get_mac(FAR struct gs2200m_dev_s *dev)
       goto errout;
     }
 
-  n = sscanf(pkt_dat.msg[0], "%2x:%2x:%2x:%2x:%2x:%2x",
-                &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+  n = sscanf(pkt_dat.msg[0], "%2" PRIx32 ":%2" PRIx32 ":%2" PRIx32
+                             ":%2" PRIx32 ":%2" PRIx32 ":%2" PRIx32,
+             &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
   DEBUGASSERT(n == 6);
 
   for (n = 0; n < 6; n++)
@@ -2766,7 +2768,7 @@ static int gs2200m_ioctl_iwreq(FAR struct gs2200m_dev_s *dev,
           goto errout;
         }
 
-      n = sscanf(pkt_dat.msg[2], "BSSID=%x:%x:%x:%x:%x:%x %s",
+      n = sscanf(pkt_dat.msg[2], "BSSID=%c:%c:%c:%c:%c:%c %s",
                  &res->u.ap_addr.sa_data[0], &res->u.ap_addr.sa_data[1],
                  &res->u.ap_addr.sa_data[2], &res->u.ap_addr.sa_data[3],
                  &res->u.ap_addr.sa_data[4], &res->u.ap_addr.sa_data[5],
@@ -2785,10 +2787,10 @@ static int gs2200m_ioctl_iwreq(FAR struct gs2200m_dev_s *dev,
           goto errout;
         }
 
-      n = sscanf(pkt_dat.msg[2], "%s CHANNEL=%d %s",
+      n = sscanf(pkt_dat.msg[2], "%s CHANNEL=%" SCNd32 " %s",
                  cmd, &res->u.freq.m, cmd2);
       ASSERT(3 == n);
-      wlinfo("CHANNEL:%d\n", res->u.freq.m);
+      wlinfo("CHANNEL:%" PRId32 "\n", res->u.freq.m);
     }
   else if (msg->cmd == SIOCGIWSENS)
     {
@@ -2798,7 +2800,7 @@ static int gs2200m_ioctl_iwreq(FAR struct gs2200m_dev_s *dev,
           goto errout;
         }
 
-      n = sscanf(pkt_dat.msg[3], "RSSI=%d", &res->u.qual.level);
+      n = sscanf(pkt_dat.msg[3], "RSSI=%" SCNd8, &res->u.qual.level);
       ASSERT(1 == n);
       wlinfo("RSSI:%d\n", res->u.qual.level);
     }
@@ -2827,7 +2829,7 @@ static int gs2200m_ioctl_ifreq(FAR struct gs2200m_dev_s *dev,
   bool getreq = false;
   int ret = OK;
 
-  wlinfo("+++ start: cmd=%x \n", msg->cmd);
+  wlinfo("+++ start: cmd=%" PRIx32 " \n", msg->cmd);
 
   inaddr = (FAR struct sockaddr_in *)&msg->ifr.ifr_addr;
 

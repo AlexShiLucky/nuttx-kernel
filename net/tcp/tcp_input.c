@@ -47,6 +47,7 @@
 
 #if defined(CONFIG_NET) && defined(CONFIG_NET_TCP)
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
@@ -508,8 +509,10 @@ found:
           if ((conn->tcpstateflags & TCP_STATE_MASK) == TCP_ESTABLISHED)
             {
               nwarn("WARNING: ackseq > unackseq\n");
-              nwarn("sndseq=%u tx_unacked=%u unackseq=%u ackseq=%u\n",
-                    tcp_getsequence(conn->sndseq), conn->tx_unacked,
+              nwarn("sndseq=%" PRIu32 " tx_unacked=%" PRIu32
+                    " unackseq=%" PRIu32 " ackseq=%" PRIu32 "\n",
+                    tcp_getsequence(conn->sndseq),
+                    (uint32_t)conn->tx_unacked,
                     unackseq, ackseq);
 
               conn->tx_unacked = 0;
@@ -521,8 +524,10 @@ found:
        * be beyond ackseq.
        */
 
-      ninfo("sndseq: %08x->%08x unackseq: %08x new tx_unacked: %d\n",
-          tcp_getsequence(conn->sndseq), ackseq, unackseq, conn->tx_unacked);
+      ninfo("sndseq: %08" PRIx32 "->%08" PRIx32
+            " unackseq: %08" PRIx32 " new tx_unacked: %" PRId32 "\n",
+            tcp_getsequence(conn->sndseq), ackseq, unackseq,
+            (uint32_t)conn->tx_unacked);
       tcp_setsequence(conn->sndseq, ackseq);
 
       /* Do RTT estimation, unless we have done retransmissions. */

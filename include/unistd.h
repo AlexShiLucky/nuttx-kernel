@@ -274,6 +274,7 @@
 #define link(p1, p2)                     symlink((p1), (p2))
 #define fdatasync(f)                     fsync(f)
 #define getdtablesize(f)                 ((int)sysconf(_SC_OPEN_MAX))
+#define getpagesize(f)                   ((int)sysconf(_SC_PAGESIZE))
 
 /****************************************************************************
  * Public Data
@@ -295,10 +296,12 @@ extern "C"
 
 #ifndef __NXFLAT__
 EXTERN FAR char *optarg; /* Optional argument following option */
+EXTERN int       opterr; /* Print error message */
 EXTERN int       optind; /* Index into argv */
 EXTERN int       optopt; /* Unrecognized option character */
 #else
 #  define optarg  (*(getoptargp()))
+#  define opterr  (*(getopterrp()))
 #  define optind  (*(getoptindp()))
 #  define optopt  (*(getoptoptp()))
 #endif
@@ -388,6 +391,7 @@ int     getopt(int argc, FAR char * const argv[], FAR const char *optstring);
  */
 
 FAR char **getoptargp(void);  /* Optional argument following option */
+FAR int   *getopterrp(void);  /* Print error message */
 FAR int   *getoptindp(void);  /* Index into argv */
 FAR int   *getoptoptp(void);  /* Unrecognized option character */
 

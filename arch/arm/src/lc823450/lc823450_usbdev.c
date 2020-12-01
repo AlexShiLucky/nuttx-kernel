@@ -618,7 +618,7 @@ static void *lc823450_epallocbuffer(struct usbdev_ep_s *ep, uint16_t bytes)
 #  ifdef CONFIG_USBDEV_DMAMEMORY
   return usbdev_dma_alloc(bytes);
 #  else
-  return kmm_alloc(bytes);
+  return kmm_malloc(bytes);
 #  endif
 }
 #endif
@@ -806,7 +806,7 @@ static struct usbdev_ep_s *lc823450_allocep(struct usbdev_s *dev,
 
   if (priv->used & 1 << epphy)
     {
-      uinfo("ep%d is still used\n");
+      uinfo("ep is still used\n");
       return NULL;
     }
 

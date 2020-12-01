@@ -148,6 +148,9 @@ else ifeq ($(CONFIG_SIM_AJOYSTICK),y)
   CSRCS += up_ajoystick.c
   HOSTCFLAGS += -DCONFIG_SIM_AJOYSTICK=1
   HOSTSRCS += up_x11eventloop.c
+else ifeq ($(CONFIG_SIM_BUTTONS),y)
+  HOSTCFLAGS += -DCONFIG_SIM_BUTTONS=1
+  HOSTSRCS += up_x11eventloop.c
 endif
 endif
 
@@ -199,7 +202,7 @@ endif
 ifeq ($(CONFIG_SIM_HCISOCKET),y)
   HOSTSRCS += up_hcisocket_host.c
   CSRCS += up_hcisocket.c
-endif 
+endif
 
 ifeq ($(CONFIG_I2C_RESET),y)
   HOSTCFLAGS += -DCONFIG_I2C_RESET=1
@@ -330,12 +333,15 @@ export_startup: board/libboard$(LIBEXT) up_head.o $(HOSTOBJS) nuttx-names.dat
 
 # Dependencies
 
+makedepfile: $(CSRCS:.c=.ddc) $(ASRCS:.S=.dds) $(HOSTSRCS:.c=.ddh)
+	$(call CATFILE, Make.dep, $^)
+	$(call DELFILE, $^)
+
 .depend: Makefile $(SRCS) $(TOPDIR)$(DELIM).config
 	$(Q) if [ -e board/Makefile ]; then \
 		$(MAKE) -C board depend ; \
 	fi
-	$(Q) $(MKDEP) $(DEPPATH) "$(CC)" -- $(CFLAGS) -- $(ASRCS) $(CSRCS) >Make.dep
-	$(Q) $(MKDEP) $(DEPPATH) "$(CC)" -- $(HOSTCFLAGS) -- $(HOSTSRCS) >>Make.dep
+	$(Q) $(MAKE) makedepfile
 	$(Q) touch $@
 
 depend: .depend
